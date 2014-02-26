@@ -1,0 +1,6 @@
+you can find example in 
+        ./example.php           example for your own php job class
+        ./io/example.php        example for your own io class
+        ./routers.php           example for your own io-router and job-router 
+        
+have fun ~
