@@ -1,5 +1,5 @@
 <?php
-	class	IoWeb	extends _CoreIo{
+    class   IoWeb   extends _CoreIo{
         public function __construct(){
             $this->data = array_merge($this->data, $_GET);
             $this->data = array_merge($this->data, $_POST);

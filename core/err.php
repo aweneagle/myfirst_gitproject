@@ -13,3 +13,4 @@
     define("CORE_ERR_SET_IOROUTER", 11);
     define("CORE_ERR_JOB_RUNING", 12);
     define("CORE_ERR_IO_OPEN", 13);
+    define("CORE_ERR_IO", 14);

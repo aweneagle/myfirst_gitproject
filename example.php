@@ -8,6 +8,7 @@
 
         core_errtype(CORE_ERRTYPE_ERRNO_ERRMSG);
         //core_errtype(CORE_ERRTYPE_EXCEPTION);
+        include "tmp_cfg.php";
         core_run("job.example");
         if (core_errno() == CORE_ERR_NONE) {
 

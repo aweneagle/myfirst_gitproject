@@ -44,7 +44,7 @@
                 if (is_array($c)) {
                     $params[$i] = $this->_fetch($c);
                 } else {
-                    $params[$i] = $c;
+                    $params[$i] = trim($c);
                 }
             }
             return new $classname($params);

@@ -134,6 +134,7 @@
         const FLUSH_RETURN = 2;
         const FLUSH_NULL = 3;
 		protected $data = array();
+        protected $options = array();
 
         public function __construct(array $params){}
         abstract public function read($options=null);   /* options , string or array,  usually json string*/
@@ -141,6 +142,33 @@
         protected function flush_return(){ $tmp = json_encode($this->data); $this->data = array(); return $tmp;}  /* return string */
         protected function flush_null(){$this->data = array();}
         abstract protected function flush_normally();
+
+        public function set_option($option, $value) {
+            $this->options[$option] = $value;
+        }
+
+        protected function assert(){
+            $args = func_get_args();
+            if (count($args) <= 2) {
+                throw new Exception("failed to call assert()", CORE_ERR_ASSERT);
+            }
+            $assert = array_shift($args);
+			if ($assert !== true) {
+				$errno = array_shift($args);
+				$errmsg = '';
+
+				while (!empty($args)){
+					if (is_string(($msg = array_shift($args)))) {
+						$errmsg .= ','.$msg;
+					}
+				}
+				$errmsg = trim($errmsg, ",");
+				if (!is_numeric($errno)) {
+					throw new Exception(  "wrong errno".",errno:".$errno.','.$errmsg, CORE_ERR_ASSERT);
+				}
+				throw new Exception( $errmsg , $errno );
+			}
+        }
 
         public function flush($flush_way){
             switch ($flush_way) {
@@ -256,6 +284,20 @@
             }
 
             return self::$src[$io_id]->flush($option);
+        }
+
+        public static function set_option($io_id, $option, $val){
+            Core::assert(@self::$src[$io_id] != null, CORE_ERR_IO_OPTIONS, "null io_id", "id:".$io_id);
+            self::$src[$io_id]->set_option($option, $val);
+            return true;
+        }
+
+        public static function set_options($io_id, array $options) {
+            Core::assert(@self::$src[$io_id] != null, CORE_ERR_IO_OPTIONS, "null io_id", "id:".$io_id);
+            foreach ($options as $key => $val) {
+                self::$src[$io_id]->set_option($key, $val);
+            }
+            return true;
         }
 
         public static function redirect($io_from, $io_to){

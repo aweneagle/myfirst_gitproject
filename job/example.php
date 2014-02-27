@@ -1,14 +1,19 @@
 <?php
     class JobExample extends _CoreJob{
         public function run($params){
-            $io = core_open("IoJson()");
-            $io_err = core_open("IoLinefile()");
-            core_redirect(CORE_STDIN, $io);
-            core_redirect(CORE_STDOUT, $io);
-            core_redirect(CORE_STDERR, $io_err);
+            $mysql_id = Tmp::$mysql;
+            $data = core_read($mysql_id, "select * from db_pepper_admin.login");
+            core_redirect(CORE_STDOUT, CORE_STDERR);
+            core_write(CORE_STDOUT, $data);
+            $data = core_read($mysql_id, array(
+                        "query"=>"select passwd from db_pepper_admin.login where uname = ?",
+                        "columns"=>array(array("fanqu"), array("t")))
+                    );
 
-            core_write(CORE_STDIN, array("name"=>"here is my name"));
-            $myname = core_read(CORE_STDOUT, "name");
-            core_assert(false, 1, "this is for test", "test:".$myname);
+            $data = core_write($mysql_id, array(
+                        "query"=>"update db_pepper_admin.login set passwd = ? where uname = ?",
+                        "columns"=>array(array("aaawen", "fanqu"), array("awen", "t")))
+                    );
+            core_write(CORE_STDOUT, $data);
         }
     }

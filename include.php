@@ -132,6 +132,21 @@ core_set_router: set the job router
 		return Core::set_iorouter($classname);
 	}
 
+/*
+ * set the io option
+ *
+ *@param $io, int id
+ *@param $option, string 
+ *@param $val, mix
+ *@return void
+ */
+    function core_set_option($io, $option, $val){
+        return Core::set_option($io, $option, $val);
+    }
+    function core_set_options($io, array $options){
+        return Core::set_options($io, $options);
+    }
+
 
 /*
 core_run:   run the job
