@@ -1,6 +1,6 @@
 <?php
-####class####IoJson####extends _CoreIo{
-########public function read($key=null){
+    class    IoJson    extends _CoreIo{
+        public function read($key=null){
             if ($key === null) {
                 return $this->data;
             } else {
@@ -8,7 +8,7 @@
             }
         }
 
-########public function write($data){
+        public function write($data){
             if ($data != null) {
                 if (is_string($data)) {
                     $data = @json_decode($data,true);
@@ -21,11 +21,11 @@
                 }
             }
 
-########}
+        }
 
-########protected function flush_normally(){
+        protected function flush_normally(){
             echo json_encode($this->data);
-############$this->data = array();
-########}
-####}
+            $this->data = array();
+        }
+    }
 ?>

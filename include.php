@@ -33,8 +33,8 @@ date: 2014-02-21
     define ("CORE_STDIN", _Core::STDIN);
     define ("CORE_STDOUT", _Core::STDOUT);
     define ("CORE_STDERR", _Core::STDERR);
-    define ("CORE_ERRTYPE_ERRNO_ERRMSG", Core::ERR_TYPE_ERRNO_ERRMSG);########/* no exception will be thrown out, you should fetch errno, errmsg by core_get_errno() and core_get_errmsg() */
-    define ("CORE_ERRTYPE_EXCEPTION", Core::ERR_TYPE_EXCEPTION);############/* all error will be thrown out */
+    define ("CORE_ERRTYPE_ERRNO_ERRMSG", Core::ERR_TYPE_ERRNO_ERRMSG);        /* no exception will be thrown out, you should fetch errno, errmsg by core_get_errno() and core_get_errmsg() */
+    define ("CORE_ERRTYPE_EXCEPTION", Core::ERR_TYPE_EXCEPTION);            /* all error will be thrown out */
     define ("CORE_IO_FLUSH_NORMALLY", _CoreIo::FLUSH_NORMALLY);
     define ("CORE_IO_FLUSH_NULL", _CoreIo::FLUSH_NULL);
     define ("CORE_IO_FLUSH_RETURN", _CoreIo::FLUSH_RETURN);
@@ -127,10 +127,10 @@ core_set_router: set the job router
     function core_set_jobrouter($classname){
         return Core::set_jobrouter($classname);
     }
-####
-####function core_set_iorouter($classname){
-########return Core::set_iorouter($classname);
-####}
+    
+    function core_set_iorouter($classname){
+        return Core::set_iorouter($classname);
+    }
 
 /*
  * set the io option

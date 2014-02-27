@@ -46,21 +46,21 @@
                 throw new Exception("failed to call Core::_assert", CORE_ERR_ASSERT);
             }
             $assert = array_shift($args);
-############if ($assert !== true) {
-################$errno = array_shift($args);
-################$errmsg = '';
+            if ($assert !== true) {
+                $errno = array_shift($args);
+                $errmsg = '';
 
-################while (!empty($args)){
-####################if (is_string(($msg = array_shift($args)))) {
-########################$errmsg .= ','.$msg;
-####################}
-################}
-################$errmsg = trim($errmsg, ",");
-################if (!is_numeric($errno)) {
-####################throw new Exception(  "wrong errno".",errno:".$errno.','.$errmsg, CORE_ERR_ASSERT);
-################}
-################throw new Exception( $errmsg , $errno );
-############}
+                while (!empty($args)){
+                    if (is_string(($msg = array_shift($args)))) {
+                        $errmsg .= ','.$msg;
+                    }
+                }
+                $errmsg = trim($errmsg, ",");
+                if (!is_numeric($errno)) {
+                    throw new Exception(  "wrong errno".",errno:".$errno.','.$errmsg, CORE_ERR_ASSERT);
+                }
+                throw new Exception( $errmsg , $errno );
+            }
         }
 
         public static function __callStatic($name, $params){
@@ -133,7 +133,7 @@
         const FLUSH_NORMALLY = 1;
         const FLUSH_RETURN = 2;
         const FLUSH_NULL = 3;
-########protected $data = array();
+        protected $data = array();
         protected $options = array();
 
         public function __construct(array $params){}
@@ -153,21 +153,21 @@
                 throw new Exception("failed to call assert()", CORE_ERR_ASSERT);
             }
             $assert = array_shift($args);
-############if ($assert !== true) {
-################$errno = array_shift($args);
-################$errmsg = '';
+            if ($assert !== true) {
+                $errno = array_shift($args);
+                $errmsg = '';
 
-################while (!empty($args)){
-####################if (is_string(($msg = array_shift($args)))) {
-########################$errmsg .= ','.$msg;
-####################}
-################}
-################$errmsg = trim($errmsg, ",");
-################if (!is_numeric($errno)) {
-####################throw new Exception(  "wrong errno".",errno:".$errno.','.$errmsg, CORE_ERR_ASSERT);
-################}
-################throw new Exception( $errmsg , $errno );
-############}
+                while (!empty($args)){
+                    if (is_string(($msg = array_shift($args)))) {
+                        $errmsg .= ','.$msg;
+                    }
+                }
+                $errmsg = trim($errmsg, ",");
+                if (!is_numeric($errno)) {
+                    throw new Exception(  "wrong errno".",errno:".$errno.','.$errmsg, CORE_ERR_ASSERT);
+                }
+                throw new Exception( $errmsg , $errno );
+            }
         }
 
         public function flush($flush_way){
@@ -185,9 +185,9 @@
             }
         }
     }
-####class####_CoreCmdline####extends _CoreIo{
+    class    _CoreCmdline    extends _CoreIo{
         public function read($options = null){}
-########public function write($data){
+        public function write($data){
             if (is_array($data) ) {
                 if (!empty($data)) {
                     $data = json_encode($data) . "\n";
@@ -207,10 +207,10 @@
                 $data = 'UNKNOWN ERR MSG,type=['.gettype($data).']';
             }
             echo $data ;
-########}
-########protected function flush_normally(){
-########}
-####}
+        }
+        protected function flush_normally(){
+        }
+    }
 
     class _Core {
 
@@ -343,8 +343,8 @@
         public static function run($job_path, $params){
             if (self::$job_router == null) { 
                 throw new Exception(
-########################"no job router to work",
-########################CORE_ERR_JOB_RUNING
+                        "no job router to work",
+                        CORE_ERR_JOB_RUNING
                             );
             }
             $job = self::$job_router->fetch($job_path);
@@ -374,10 +374,10 @@
         public static function add_classroot($dir){
             self::$class_roots[] = $dir;
         }
-########
-########public static function get_classroots(){
-############return self::$class_roots;
-########}
+        
+        public static function get_classroots(){
+            return self::$class_roots;
+        }
 
         public static function reg_autoload($func){
 
