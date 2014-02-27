@@ -38,10 +38,9 @@
         }
 
         /* 
-           Core::_assert($assert, $errno, $errmsg, $errmsg1, $errmsg2, ...) 
-                    it is use for inner modules , like CORE_ROOT/io/xxx.php, CORE_ROOT/io/xxxx.php ...
+           Core::assert($assert, $errno, $errmsg, $errmsg1, $errmsg2, ...) 
              */
-        public function _assert(){
+        public function assert(){
             $args = func_get_args();
             if (count($args) <= 2) {
                 throw new Exception("failed to call Core::_assert", CORE_ERR_ASSERT);
@@ -62,31 +61,6 @@
 				}
 				throw new Exception( $errmsg , $errno );
 			}
-        }
-
-        /* 
-           Core::assert()
-                it is use for outer modules, like include.php , somewhere else in application level ...
-                */
-
-        public function assert($assert, $errno, $errmsg){
-            if ($assert !== true) {
-                self::$errmsg = $errmsg;
-                self::$errno = $errno;
-                
-                switch (self::$errtype){
-                    case self::ERR_TYPE_EXCEPTION:
-                        throw new Exception($errmsg, $errno);
-
-                    case self::ERR_TYPE_ERRNO_ERRMSG:
-                    default:
-                        _Core::write(_Core::STDERR, $errmsg);
-                        _Core::flush(_Core::STDERR);
-                        return false;
-                }
-            }
-            return true;
-
         }
 
         public static function __callStatic($name, $params){
