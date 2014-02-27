@@ -1,8 +1,8 @@
 <?php
     class JobExample extends _CoreJob{
         public function run($params){
-            $io = core_open("IoExample");
-            $io_err = core_open("IoLinefile");
+            $io = core_open("IoJson()");
+            $io_err = core_open("IoLinefile()");
             core_redirect(CORE_STDIN, $io);
             core_redirect(CORE_STDOUT, $io);
             core_redirect(CORE_STDERR, $io_err);

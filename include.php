@@ -48,23 +48,26 @@ core_assert:    core_assert( $assert, $errno, [[$errmsg,] $errmsg2,] ... )
 @param  $errmsg2
 */
     function core_assert(){
+
         $args = func_get_args();
         Core::assert(count($args) >= 2,
                 CORE_ERR_ASSERT,
                 "more args need for function core_assert()");
 
         $assert = array_shift($args);
-        $errno = array_shift($args);
-        $errmsg = '';
-        while (!empty($args)){
-            if (is_string(($msg = array_shift($args)))) {
-                $errmsg .= ",".$msg;
+        if ($assert !== true) {
+            $errno = array_shift($args);
+            $errmsg = '';
+            while (!empty($args)){
+                if (is_string(($msg = array_shift($args)))) {
+                    $errmsg .= ",".$msg;
+                }
             }
+
+            $errmsg = trim($errmsg, ",");
+
+            throw new Exception($errmsg, $errno);
         }
-
-        $errmsg = trim($errmsg, ",");
-
-        return Core::_assert($assert, $errno, $errmsg);
     }
 
 
@@ -105,51 +108,7 @@ core_reg_autoload:   register the autoload function, it can be called more than 
                    or func,  'auto_load'
  */
     function core_reg_autoload($func){
-
-        if (is_array($func)) {
-
-            $classname = @$func[0];
-            $function = @$func[1];
-
-            if ( !Core::assert(
-                        class_exists($classname),
-                        CORE_ERR_AUTOLOAD_REG,
-                        "your auto load class should be put in core/autoload.php ", "class:".$classname)) 
-            {
-                return false;
-            }
-
-            if ( !Core::assert(
-                        method_exists($classname, $function),
-                        CORE_ERR_AUTOLOAD_REG,
-                        "your autoload class has not implemented it's function ", "class:".$classname, "func:".$function)) 
-            {
-                return false;
-            }
-
-            spl_autoload_register(array($classname, $function));
-
-            return true;
-
-        } else if (is_string($func)) {
-
-            if ( !Core::assert(
-                        function_exists($func),
-                        CORE_ERR_AUTOLOAD_REG,
-                        "your auto load function should be put in core/autoload.php ", "func:".$func)) 
-            {
-                return false;
-            }
-
-            spl_autoload_register($func);
-
-            return true;
-
-        } else {
-            return  Core::assert(false, 
-                        CORE_ERR_AUTOLOAD_REG,
-                        "wrong input for auto load");
-        }
+        return Core::reg_autoload($func);
     }
 
 
@@ -166,25 +125,11 @@ core_set_router: set the job router
 @param  $classname   it must be placed in $CORE_ROOT/core/routers.php, and it must extends the super class _CoreRouter
 */
     function core_set_jobrouter($classname){
-        if ( !Core::assert(
-                    class_exists($classname),
-                    CORE_ERR_SET_JOBROUTER,
-                    "your router should be placed in core/routers.php", "class:".$classname)) 
-        {
-            return false;
-        }
-        return Core::set_jobrouter(new $classname);
+        return Core::set_jobrouter($classname);
     }
 	
 	function core_set_iorouter($classname){
-		if ( !Core::assert(
-					class_exists($classname),
-					CORE_ERR_SET_IOROUTER,
-					"your io router should be placed in core/routers.php", "class:".$classname))
-		{
-			return false;
-		}
-		return Core::set_iorouter(new $classname);
+		return Core::set_iorouter($classname);
 	}
 
 
@@ -250,7 +195,7 @@ CORE_IO_FLUSH_NORMAL:   do the flush normally
 CORE_IO_FLUSH_RETURN:   not into the real io, but flush out the buffer from this function 
 CORE_IO_FLUSH_NULL:     abandon the buffer
 */
-    function core_flush($io, $option = CORE_IO_FLUSH_NORMAL){
+    function core_flush($io, $option = CORE_IO_FLUSH_NORMALLY){
         return Core::flush($io, $option);
     }
 
@@ -263,4 +208,12 @@ core_watch: monitor the io , usually used as log
 */
     function core_watch($io, $monitor){
         return Core::watch($io, $monitor);
+    }
+
+/*default init
+ *
+ *@return null
+ */
+    function core_default_init(){
+        return Core::default_init();
     }

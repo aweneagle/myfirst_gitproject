@@ -10,7 +10,7 @@
 
         private static $errtype = self::ERR_TYPE_EXCEPTION;
         private static $errmsg = null;
-        private static $errno = null;
+        private static $errno = CORE_ERR_NONE;
 
         public function get_errtype(){
             return self::$errtype;
@@ -46,7 +46,7 @@
                 throw new Exception("failed to call Core::_assert", CORE_ERR_ASSERT);
             }
             $assert = array_shift($args);
-			if ($assert === false) {
+			if ($assert !== true) {
 				$errno = array_shift($args);
 				$errmsg = '';
 
@@ -71,8 +71,12 @@
                     } catch (Exception $e) {
                         self::$errno = $e->getCode();
                         self::$errmsg = $e->getMessage();
-                        _Core::write(_Core::STDERR, self::$errmsg);
-                        _Core::flush(_Core::STDERR);
+                        try {
+                            _Core::write(_Core::STDERR, self::$errmsg);
+                            _Core::flush(_Core::STDERR);
+                        } catch (Exception $e) {
+                            die( "FAILED TO WRITE INTO [STDERR],MAYBE IT'S REDIRECTED WITH WRONG IO CLASS,err=".$e->getMessage());
+                        }
                         return false;
                     }
                     break;
@@ -134,7 +138,7 @@
         public function __construct(array $params){}
         abstract public function read($options=null);   /* options , string or array,  usually json string*/
         abstract public function write($data);          /* data,    string or array,    usually json string*/
-        protected function flush_return(){$tmp = json_encode($this->data); $this->data = array(); return $tmp;}     /* return string */
+        protected function flush_return(){ $tmp = json_encode($this->data); $this->data = array(); return $tmp;}  /* return string */
         protected function flush_null(){$this->data = array();}
         abstract protected function flush_normally();
 
@@ -153,6 +157,32 @@
             }
         }
     }
+	class	_CoreCmdline	extends _CoreIo{
+        public function read($options = null){}
+		public function write($data){
+            if (is_array($data) ) {
+                if (!empty($data)) {
+                    $data = json_encode($data) . "\n";
+                } else {
+                    $data = '';
+                }
+            } else if (is_string($data)) {
+
+                /* filter the string "[]" */
+                $tmp = @json_decode($data, true);
+                if (is_array($tmp) && empty($tmp)) {
+                    $data = '';
+                }else{
+                    $data .= "\n";
+                }
+            } else {
+                $data = 'UNKNOWN ERR MSG,type=['.gettype($data).']';
+            }
+            echo $data ;
+		}
+		protected function flush_normally(){
+		}
+	}
 
     class _Core {
 
@@ -174,10 +204,14 @@
 
 
         public static function open($io_path){
-            self::$src[ self::$available_srcid ] = self::$io_router->fetch($io_path);
+            $newio = self::$io_router->fetch($io_path);
+            if ( !$newio instanceof _CoreIo ){
+                throw new Exception("class is not instance of _CoreIo,io_path=".$io_path,CORE_ERR_IO_OPEN);
+            }
+            self::$src[ self::$available_srcid ]  = $newio;
             $curr = self::$available_srcid ;
 
-            for ($i = self::$available_srcid ; self::$src[$i] != null ; $i ++) {
+            for ($i = self::$available_srcid ; @self::$src[$i] != null ; $i ++) {
                 ;   
             }
 
@@ -194,7 +228,7 @@
         public static function read($io_id, $options=null){
             if (!isset(self::$src[$io_id]) || self::$src[$io_id]==null) { 
                 throw new Exception(
-                    "wrong io_id for reading", "id:".$io_id,
+                    "wrong io_id for reading,". "id:".$io_id,
                     CORE_ERR_IO_READ
                     );
             }
@@ -205,7 +239,7 @@
         public static function write($io_id, $data){
             if (!isset(self::$src[$io_id]) || self::$src[$io_id]==null) {
                 throw new Exception(
-                    "wrong io_id for writing", "id:".$io_id,
+                    "wrong io_id for writing,". "id:".$io_id,
                     CORE_ERR_IO_WRITE
                     );
             }
@@ -216,7 +250,7 @@
         public static function flush($io_id, $option=_CoreIo::FLUSH_NORMALLY){
             if (!isset(self::$src[$io_id]) || self::$src[$io_id]==null){
                 throw new Exception(
-                    "wrong io_id for flushing", "id:".$io_id,
+                    "wrong io_id for flushing,". "id:".$io_id,
                     CORE_ERR_IO_FLUSH
                     );
             }
@@ -225,22 +259,47 @@
         }
 
         public static function redirect($io_from, $io_to){
-            if (!isset(self::$src[$io_to]) || self::$src[$io_to]==null) { 
+            if (self::$src[$io_to]==null) { 
                 throw new Exception(
-                    "wrong io_to for redirection", "id:".$io_to,
+                    "wrong io_to for redirection,". "id:".$io_to,
                     CORE_ERR_IO_REDIRECT
                         );
             }
 
-            if (isset(self::$src[$io_from])) {
+            if (@self::$src[$io_from] != null) {
                 $buffer = self::$src[$io_from]->flush(_CoreIo::FLUSH_RETURN);
                 self::$src[$io_to]->write($buffer);
             }
             self::$src[$io_from] = self::$src[$io_to];
         }
 
+        public static function default_init(){
+            // 1. set default stderr 
+            if (self::$src[self::STDERR] == null){
+                self::$src[self::STDERR] = new _CoreCmdline(array());
+            }
+            // 4. set default autoloader
+            self::reg_autoload(array("CoreAutoLoadExample", "autoload")); 
+            // 5. add curr dir into class root
+            self::add_classroot("./");
+            // 6. set default job router
+            self::set_jobrouter("CoreJobRouter");
+            // 7. set default io router
+            self::set_iorouter("CoreIoRouter");
+            // 2. set default stdout 
+            if (self::$src[self::STDOUT] == null){
+                $stdout = self::open("IoJson()");
+                self::redirect(self::STDOUT, $stdout);
+            }
+            // 3. set default stdin 
+            if (self::$src[self::STDIN] == null){
+                $stdin = self::open("IoWeb()");
+                self::redirect(self::STDIN, $stdin);
+            }
+        }
+
         public static function run($job_path, $params){
-            if (self::$job_router == null)) { 
+            if (self::$job_router == null) { 
                 throw new Exception(
 						"no job router to work",
 						CORE_ERR_JOB_RUNING
@@ -250,12 +309,24 @@
             return $job->run($params);
         }
 
-        public static function set_jobrouter(_CoreRouter $router) {
-            self::$job_router = $router;
+        public static function set_jobrouter($classname) {
+            if ( !class_exists($classname)) {
+                throw new Exception(
+                        "your io router should be placed in core/routers.php,". "class:".$classname,
+                        CORE_ERR_SET_IOROUTER
+                        );
+            }
+            self::$job_router = new $classname();
         }
 
-        public static function set_iorouter(_CoreRouter $router){
-            self::$io_router = $router;
+        public static function set_iorouter($classname){
+            if ( !class_exists($classname)) {
+                throw new Exception(
+                        "your io router should be placed in core/routers.php,". "class:".$classname,
+                        CORE_ERR_SET_IOROUTER
+                        );
+            }
+            self::$io_router = new $classname();
         }
 
         public static function add_classroot($dir){
@@ -265,5 +336,44 @@
 		public static function get_classroots(){
 			return self::$class_roots;
 		}
+
+        public static function reg_autoload($func){
+
+            if (is_array($func)) {
+
+                $classname = @$func[0];
+                $function = @$func[1];
+
+                Core::assert(
+                            class_exists($classname),
+                            CORE_ERR_AUTOLOAD_REG,
+                            "your auto load class should be placed in core/autoload.php ", "class:".$classname) ;
+
+                Core::assert(
+                            method_exists($classname, $function),
+                            CORE_ERR_AUTOLOAD_REG,
+                            "your autoload class has not implemented it's function ", "class:".$classname, "func:".$function); 
+
+                spl_autoload_register(array($classname, $function));
+
+                return true;
+
+            } else if (is_string($func)) {
+
+                Core::assert(
+                            function_exists($func),
+                            CORE_ERR_AUTOLOAD_REG,
+                            "your auto load function should be placed in core/autoload.php ", "func:".$func); 
+
+                spl_autoload_register($func);
+
+                return true;
+
+            } else {
+                Core::assert(false, 
+                        CORE_ERR_AUTOLOAD_REG,
+                        "wrong input for auto load");
+            }
+        }
 
     }

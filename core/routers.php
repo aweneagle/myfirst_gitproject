@@ -8,7 +8,7 @@
                $classname .= ucfirst($n);
             }
             if(!class_exists($classname, true)){
-                throw new Exception(CORE_SET_JOBROUTER, "failed to load class", "class:".$classname);
+                throw new Exception( "failed to load class,". "class:".$classname,CORE_ERR_SET_JOBROUTER);
             }
             return new $classname();
         }
@@ -56,7 +56,6 @@
      *  string like " a(1, b(1,2), c()) " into  $obj = new a(1, new b(1,2), new c());
      */
     class ClassExplainer{
-
         private $_tmp_stack = array();
         private $pos = 0;
         private $str_len = null;
@@ -65,11 +64,13 @@
         public $arg_split = ",";
         public $err = '';
 
+        private function _clean(){
+            $this->_tmp_stack = array();
+            $this->pos = 0;
+            $this->str_len = null;
+            $this->err = '';
+        }
 
-        /*pares an string into an array
-         *
-         *@param    str, formate like "a(1, b(1,2), c())",  the open_tag "(", close_tag")", and arg_split "," can be changed
-         */
         public function explain($str){
             if ($this->str_len === null) {
                 $this->str_len = strlen($str);
@@ -78,7 +79,7 @@
 
             // find class name
             for ( ; 
-                 $str[$this->pos] != $this->open_tag && $this->pos < $this->str_len ;
+                 $this->pos < $this->str_len && $str[$this->pos] != $this->open_tag ;
                  $this->pos++ ){
 
                 $class .= $str[ $this->pos ];
@@ -112,7 +113,7 @@
 
                     $this->pos -= strlen($arg);
                     
-                    if (!($arg = $this->fetch($str))) {
+                    if (!($arg = $this->explain($str))) {
                         return false;
                     }
                     if (($top_class = array_pop($this->_tmp_stack)) != $class) {    //check if it's match
@@ -129,6 +130,10 @@
                     array_pop($this->_tmp_stack);
                     if ($arg = trim($arg, $this->close_tag)) {
                         $res["ARGS"][$j++] = trim($arg);
+                    }
+                    
+                    if (empty($this->_tmp_stack)) {
+                        $this->_clean();
                     }
                     return $res;
                 }
