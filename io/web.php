@@ -4,7 +4,7 @@
             $this->data = array_merge($this->data, $_GET);
             $this->data = array_merge($this->data, $_POST);
         }
-		public function read($key=null){
+########public function read($key=null){
             if ($key === null) {
                 return $this->data;
             } else {
@@ -12,16 +12,16 @@
             }
         }
 
-		public function write($data){
+########public function write($data){
             if (is_string($data) && ($data = json_decode($data,true)) === false) {
                 throw new Exception("wrong input data for io", CORE_ERR_IO_WRITE);
             }
             foreach ($data as $k => $v) {
                 $this->data[$k] = $v;
             }
-		}
+########}
 
-		protected function flush_normally(){
-		}
-	}
+########protected function flush_normally(){
+########}
+####}
 ?>
