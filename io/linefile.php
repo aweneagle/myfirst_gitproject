@@ -3,7 +3,9 @@
 		public function __construct($params){}
 		public function read($options=null){}
 		public function write($data){
-			Core::_assert(is_string($data), CORE_ERR_IO_WRITE, "wrong input for writing into IoLineFile");
+			if (!is_string($data)) {
+                throw new Exception( "wrong input for writing into IoLineFile",CORE_ERR_IO_WRITE);
+            }
 			$this->data[] = $data;
 		}
 		protected function flush_normally(){
@@ -11,11 +13,6 @@
 				echo $line . "\n";
 			}
 			$this->data = array();
-		}
-		protected function flush_return(){
-			$data = $this->data;
-			$this->data = array();
-			return $data;
 		}
 	}
 ?>

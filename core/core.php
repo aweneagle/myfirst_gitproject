@@ -160,7 +160,7 @@
         public function __construct(array $params){}
         abstract public function read($options=null);   /* options , string or array,  usually json string*/
         abstract public function write($data);          /* data,    string or array,    usually json string*/
-        abstract protected function flush_return();     /* return string */
+        protected function flush_return(){$tmp = json_encode($this->data); $this->data = array(); return $tmp;}     /* return string */
         protected function flush_null(){$this->data = array();}
         abstract protected function flush_normally();
 
@@ -218,33 +218,45 @@
         }
 
         public static function read($io_id, $options=null){
-            Core::_assert(isset(self::$src[$io_id]) && self::$src[$io_id]!=null, 
-                    CORE_ERR_IO_READ,
-                    "wrong io_id for reading", "id:".$io_id);
+            if (!isset(self::$src[$io_id]) || self::$src[$io_id]==null) { 
+                throw new Exception(
+                    "wrong io_id for reading", "id:".$io_id,
+                    CORE_ERR_IO_READ
+                    );
+            }
 
             return  self::$src[$io_id]->read($options);
         }
 
         public static function write($io_id, $data){
-            Core::_assert(isset(self::$src[$io_id]) && self::$src[$io_id]!=null, 
-                    CORE_ERR_IO_WRITE,
-                    "wrong io_id for writing", "id:".$io_id);
+            if (!isset(self::$src[$io_id]) || self::$src[$io_id]==null) {
+                throw new Exception(
+                    "wrong io_id for writing", "id:".$io_id,
+                    CORE_ERR_IO_WRITE
+                    );
+            }
 
             return self::$src[$io_id]->write($data);
         }
 
         public static function flush($io_id, $option=_CoreIo::FLUSH_NORMALLY){
-            Core::_assert(isset(self::$src[$io_id]) && self::$src[$io_id]!=null, 
-                    CORE_ERR_IO_FLUSH,
-                    "wrong io_id for flushing", "id:".$io_id);
+            if (!isset(self::$src[$io_id]) || self::$src[$io_id]==null){
+                throw new Exception(
+                    "wrong io_id for flushing", "id:".$io_id,
+                    CORE_ERR_IO_FLUSH
+                    );
+            }
 
             return self::$src[$io_id]->flush($option);
         }
 
         public static function redirect($io_from, $io_to){
-            Core::_assert(isset(self::$src[$io_to]) && self::$src[$io_to]!=null, 
-                    CORE_ERR_IO_REDIRECT,
-                    "wrong io_to for redirection", "id:".$io_to);
+            if (!isset(self::$src[$io_to]) || self::$src[$io_to]==null) { 
+                throw new Exception(
+                    "wrong io_to for redirection", "id:".$io_to,
+                    CORE_ERR_IO_REDIRECT
+                        );
+            }
 
             if (isset(self::$src[$io_from])) {
                 $buffer = self::$src[$io_from]->flush(_CoreIo::FLUSH_RETURN);
@@ -254,9 +266,12 @@
         }
 
         public static function run($job_path, $params){
-            Core::_assert(self::$job_router != null, 
-						CORE_ERR_JOB_RUNING,
-						"no job router to work");
+            if (self::$job_router == null)) { 
+                throw new Exception(
+						"no job router to work",
+						CORE_ERR_JOB_RUNING
+                            );
+            }
             $job = self::$job_router->fetch($job_path);
             return $job->run($params);
         }

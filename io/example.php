@@ -23,7 +23,11 @@
         public function write($data){
             if (!is_array($data)) {
                 $data = @json_decode($data, true);
-                Core::_assert(!empty($data), CORE_ERR_IO_WRITE, "wrong data for writing into IoExample");
+                if (empty($data)) {
+                    throw new Exception(
+                    "wrong data for writing into IoExample",
+                    CORE_ERR_IO_WRITE );
+                }
             }
 
             foreach ($data as $k => $v) {
