@@ -14,3 +14,4 @@
     define("CORE_ERR_JOB_RUNING", 12);
     define("CORE_ERR_IO_OPEN", 13);
     define("CORE_ERR_IO", 14);
+    define("CORE_ERR_IO_CREATING", 15);

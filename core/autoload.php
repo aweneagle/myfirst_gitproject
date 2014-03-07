@@ -11,13 +11,26 @@
                     $subpath .= $name[$i];
                 }
             }
-            $subpath = trim($subpath, "/");
+            $tmp = $subpath;
+            $subpath = trim($tmp, "/");
+            $tmp = explode("/",$tmp);
+            array_pop($tmp);
+            $subpath2 = implode("/",$tmp);
             foreach (_Core::get_classroots() as $dir) {
-                $file = $dir."/".$subpath.".php";
+
+                $file = $dir."/".$subpath2.".php";          //try path  "a/b.php" for class ABC
                 if (file_exists($file)) {
                     include $file;
-                    if (!class_exists($name) && !interface_exists($name)) {
-                        continue;
+                    if (class_exists($name) || interface_exists($name)) {
+                        return ;
+                    }
+                }
+
+                $file = $dir."/".$subpath.".php";           //try path  "a/b/c.php" for class ABC
+                if (file_exists($file)) {
+                    include $file;
+                    if (class_exists($name) || interface_exists($name)) {
+                        return ;
                     }
                 }
             }

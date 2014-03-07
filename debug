@@ -1,0 +1,1258 @@
+execve("/usr/local/bin/php", ["php", "test.php"], [/* 22 vars */]) = 0
+brk(0)                                  = 0x22a3000
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4f000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8/lib/tls/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8/lib/tls/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8/lib/tls/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8/lib/tls", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8/lib/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8/lib/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8/lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/usr/local/lib/curl-7.26.0/lib/tls/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0/lib/tls/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/tls/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0/lib/tls", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0/lib/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0/lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/usr/local/lib/curl-7.26.0//lib/tls/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0//lib/tls/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/tls/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0//lib/tls", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0//lib/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/curl-7.26.0//lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/usr/local/lib/libmcrypt-2.5.8//lib/tls/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8//lib/tls/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/tls/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8//lib/tls", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8//lib/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmcrypt-2.5.8//lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/usr/local/services/mysql//lib/tls/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/services/mysql//lib/tls/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/tls/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/services/mysql//lib/tls", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/x86_64/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/services/mysql//lib/x86_64", 0x7fff7ca826f0) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libresolv.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/services/mysql//lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=23468, ...}) = 0
+mmap(NULL, 23468, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f253ea49000
+close(3)                                = 0
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libresolv.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P9\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=101192, ...}) = 0
+mmap(NULL, 2206328, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253e616000
+mprotect(0x7f253e62d000, 2097152, PROT_NONE) = 0
+mmap(0x7f253e82d000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x17000) = 0x7f253e82d000
+mmap(0x7f253e82f000, 6776, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253e82f000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libmysqlclient.so.18", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libmysqlclient.so.18", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libmysqlclient.so.18", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libmysqlclient.so.18", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libmysqlclient.so.18", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@s\3\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=8634589, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea48000
+mmap(NULL, 6063408, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253e04d000
+mprotect(0x7f253e33e000, 2097152, PROT_NONE) = 0
+mmap(0x7f253e53e000, 860160, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2f1000) = 0x7f253e53e000
+mmap(0x7f253e610000, 21808, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253e610000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libmcrypt.so.4", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0`S\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=593053, ...}) = 0
+mmap(NULL, 2301952, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253de1b000
+mprotect(0x7f253de44000, 2097152, PROT_NONE) = 0
+mmap(0x7f253e044000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x29000) = 0x7f253e044000
+mmap(0x7f253e048000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253e048000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libdl.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libdl.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\r\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=14768, ...}) = 0
+mmap(NULL, 2109704, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253dc17000
+mprotect(0x7f253dc19000, 2097152, PROT_NONE) = 0
+mmap(0x7f253de19000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f253de19000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libm.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libm.so.6", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\360>\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=538928, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea47000
+mmap(NULL, 2633960, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253d993000
+mprotect(0x7f253da16000, 2093056, PROT_NONE) = 0
+mmap(0x7f253dc15000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x82000) = 0x7f253dc15000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libcurl.so.4", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libcurl.so.4", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340\206\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=402426, ...}) = 0
+mmap(NULL, 2452552, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253d73c000
+mprotect(0x7f253d791000, 2093056, PROT_NONE) = 0
+mmap(0x7f253d990000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x54000) = 0x7f253d990000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libz.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libz.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libz.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libz.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libz.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libz.so.1", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P \0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=96816, ...}) = 0
+mmap(NULL, 2191920, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253d524000
+mprotect(0x7f253d53b000, 2093056, PROT_NONE) = 0
+mmap(0x7f253d73a000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16000) = 0x7f253d73a000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libxml2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libxml2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libxml2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libxml2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libxml2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/libxml2.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\240\303\2\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=1417304, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea46000
+mmap(NULL, 3517784, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253d1c9000
+mprotect(0x7f253d31a000, 2093056, PROT_NONE) = 0
+mmap(0x7f253d519000, 40960, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x150000) = 0x7f253d519000
+mmap(0x7f253d523000, 3416, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253d523000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libc.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0 \24\2\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1694008, ...}) = 0
+mmap(NULL, 3810152, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253ce26000
+mprotect(0x7f253cfbf000, 2093056, PROT_NONE) = 0
+mmap(0x7f253d1be000, 20480, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x198000) = 0x7f253d1be000
+mmap(0x7f253d1c3000, 21352, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253d1c3000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/librt.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/librt.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/librt.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/librt.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/librt.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/librt.so.1", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\200!\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=31752, ...}) = 0
+mmap(NULL, 2129016, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253cc1e000
+mprotect(0x7f253cc25000, 2093056, PROT_NONE) = 0
+mmap(0x7f253ce24000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0x7f253ce24000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libpthread.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libpthread.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libpthread.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libpthread.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libpthread.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libpthread.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0Pl\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=135500, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea45000
+mmap(NULL, 2212920, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253ca01000
+mprotect(0x7f253ca19000, 2093056, PROT_NONE) = 0
+mmap(0x7f253cc18000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x17000) = 0x7f253cc18000
+mmap(0x7f253cc1a000, 13368, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253cc1a000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libstdc++.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libstdc++.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libstdc++.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libstdc++.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libstdc++.so.6", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libstdc++.so.6", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\244\5\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=991424, ...}) = 0
+mmap(NULL, 3171440, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253c6fa000
+mprotect(0x7f253c7e2000, 2097152, PROT_NONE) = 0
+mmap(0x7f253c9e2000, 40960, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xe8000) = 0x7f253c9e2000
+mmap(0x7f253c9ec000, 83056, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253c9ec000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libgcc_s.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libgcc_s.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libgcc_s.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libgcc_s.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libgcc_s.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libgcc_s.so.1", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260(\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=88384, ...}) = 0
+mmap(NULL, 2184216, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253c4e4000
+mprotect(0x7f253c4f9000, 2093056, PROT_NONE) = 0
+mmap(0x7f253c6f8000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x14000) = 0x7f253c6f8000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libidn.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libidn.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libidn.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libidn.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libidn.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libidn.so.11", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0000/\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=207312, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea44000
+mmap(NULL, 2302408, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253c2b1000
+mprotect(0x7f253c2e2000, 2097152, PROT_NONE) = 0
+mmap(0x7f253c4e2000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x31000) = 0x7f253c4e2000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libldap_r-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libldap_r-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libldap_r-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libldap_r-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libldap_r-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libldap_r-2.4.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320\315\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=310816, ...}) = 0
+mmap(NULL, 2415368, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253c063000
+mprotect(0x7f253c0ad000, 2093056, PROT_NONE) = 0
+mmap(0x7f253c2ac000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x49000) = 0x7f253c2ac000
+mmap(0x7f253c2af000, 6920, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253c2af000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libssl.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libssl.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libssl.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libssl.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libssl.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libssl.so.1.0.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0 \2\1\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=340688, ...}) = 0
+mmap(NULL, 2435960, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253be10000
+mprotect(0x7f253be5b000, 2097152, PROT_NONE) = 0
+mmap(0x7f253c05b000, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4b000) = 0x7f253c05b000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libcrypto.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libcrypto.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libcrypto.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libcrypto.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libcrypto.so.1.0.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libcrypto.so.1.0.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300\312\5\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=1749000, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea43000
+mmap(NULL, 3859752, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253ba61000
+mprotect(0x7f253bbe9000, 2097152, PROT_NONE) = 0
+mmap(0x7f253bde9000, 143360, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x188000) = 0x7f253bde9000
+mmap(0x7f253be0c000, 13608, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253be0c000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/liblber-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/liblber-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/liblber-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/liblber-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/liblber-2.4.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/liblber-2.4.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\260)\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=55504, ...}) = 0
+mmap(NULL, 2150888, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253b853000
+mprotect(0x7f253b860000, 2093056, PROT_NONE) = 0
+mmap(0x7f253ba5f000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xc000) = 0x7f253ba5f000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libsasl2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libsasl2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libsasl2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libsasl2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libsasl2.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libsasl2.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\300.\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=109264, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea42000
+mmap(NULL, 2204640, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253b638000
+mprotect(0x7f253b652000, 2093056, PROT_NONE) = 0
+mmap(0x7f253b851000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x19000) = 0x7f253b851000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libgssapi_krb5.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libgssapi_krb5.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libgssapi_krb5.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libgssapi_krb5.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libgssapi_krb5.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\234\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=252592, ...}) = 0
+mmap(NULL, 2348416, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253b3fa000
+mprotect(0x7f253b435000, 2097152, PROT_NONE) = 0
+mmap(0x7f253b635000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3b000) = 0x7f253b635000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libgnutls.so.26", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libgnutls.so.26", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libgnutls.so.26", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libgnutls.so.26", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libgnutls.so.26", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libgnutls.so.26", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\360M\1\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=688328, ...}) = 0
+mmap(NULL, 2783560, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253b152000
+mprotect(0x7f253b1f3000, 2093056, PROT_NONE) = 0
+mmap(0x7f253b3f2000, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xa0000) = 0x7f253b3f2000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libgcrypt.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libgcrypt.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libgcrypt.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libgcrypt.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libgcrypt.so.11", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libgcrypt.so.11", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0~\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=516056, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea41000
+mmap(NULL, 2612480, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253aed4000
+mprotect(0x7f253af4e000, 2097152, PROT_NONE) = 0
+mmap(0x7f253b14e000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x7a000) = 0x7f253b14e000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libkrb5.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libkrb5.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libkrb5.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libkrb5.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libkrb5.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libkrb5.so.3", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0Pl\1\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=824024, ...}) = 0
+mmap(NULL, 2919872, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253ac0b000
+mprotect(0x7f253acca000, 2097152, PROT_NONE) = 0
+mmap(0x7f253aeca000, 40960, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xbf000) = 0x7f253aeca000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libk5crypto.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libk5crypto.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libk5crypto.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libk5crypto.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libk5crypto.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libk5crypto.so.3", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320?\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=162248, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea40000
+mmap(NULL, 2258528, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253a9e3000
+mprotect(0x7f253aa09000, 2093056, PROT_NONE) = 0
+mmap(0x7f253ac08000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x25000) = 0x7f253ac08000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libcom_err.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libcom_err.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\23\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=14544, ...}) = 0
+mmap(NULL, 2109864, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253a7df000
+mprotect(0x7f253a7e2000, 2093056, PROT_NONE) = 0
+mmap(0x7f253a9e1000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f253a9e1000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libkrb5support.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libkrb5support.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libkrb5support.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libkrb5support.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libkrb5support.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libkrb5support.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0000\36\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=31184, ...}) = 0
+mmap(NULL, 2126576, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253a5d7000
+mprotect(0x7f253a5de000, 2093056, PROT_NONE) = 0
+mmap(0x7f253a7dd000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0x7f253a7dd000
+close(3)                                = 0
+open("/usr/lib/x86_64-linux-gnu/tls/x86_64/libtasn1.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib/x86_64-linux-gnu/tls/x86_64", 0x7fff7ca80c80) = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/tls/libtasn1.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib/x86_64-linux-gnu/tls", 0x7fff7ca80c80) = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/x86_64/libtasn1.so.3", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib/x86_64-linux-gnu/x86_64", 0x7fff7ca80c80) = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64-linux-gnu/libtasn1.so.3", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\360\30\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=67856, ...}) = 0
+mmap(NULL, 2163496, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253a3c6000
+mprotect(0x7f253a3d6000, 2093056, PROT_NONE) = 0
+mmap(0x7f253a5d5000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xf000) = 0x7f253a5d5000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libgpg-error.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libgpg-error.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libgpg-error.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libgpg-error.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libgpg-error.so.0", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libgpg-error.so.0", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\10\0\0\0\0\0\0"..., 832) = 832
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea3f000
+fstat(3, {st_mode=S_IFREG|0644, st_size=14352, ...}) = 0
+mmap(NULL, 2109528, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253a1c2000
+mprotect(0x7f253a1c5000, 2093056, PROT_NONE) = 0
+mmap(0x7f253a3c4000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7f253a3c4000
+close(3)                                = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libkeyutils.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libkeyutils.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libkeyutils.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libkeyutils.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libkeyutils.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libkeyutils.so.1", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220\v\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=10160, ...}) = 0
+mmap(NULL, 2105408, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2539fbf000
+mprotect(0x7f2539fc1000, 2093056, PROT_NONE) = 0
+mmap(0x7f253a1c0000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7f253a1c0000
+close(3)                                = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea3e000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea3d000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea3c000
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea3a000
+arch_prctl(ARCH_SET_FS, 0x7f253ea3a760) = 0
+mprotect(0x7f253a1c0000, 4096, PROT_READ) = 0
+mprotect(0x7f253a3c4000, 4096, PROT_READ) = 0
+mprotect(0x7f253a5d5000, 4096, PROT_READ) = 0
+mprotect(0x7f253a7dd000, 4096, PROT_READ) = 0
+mprotect(0x7f253a9e1000, 4096, PROT_READ) = 0
+mprotect(0x7f253ac08000, 8192, PROT_READ) = 0
+mprotect(0x7f253aeca000, 36864, PROT_READ) = 0
+mprotect(0x7f253b14e000, 4096, PROT_READ) = 0
+mprotect(0x7f253b3f2000, 28672, PROT_READ) = 0
+mprotect(0x7f253b635000, 4096, PROT_READ) = 0
+mprotect(0x7f253b851000, 4096, PROT_READ) = 0
+mprotect(0x7f253ba5f000, 4096, PROT_READ) = 0
+mprotect(0x7f253bde9000, 102400, PROT_READ) = 0
+mprotect(0x7f253c05b000, 12288, PROT_READ) = 0
+mprotect(0x7f253c2ac000, 8192, PROT_READ) = 0
+mprotect(0x7f253c4e2000, 4096, PROT_READ) = 0
+mprotect(0x7f253c6f8000, 4096, PROT_READ) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea39000
+mprotect(0x7f253c9e2000, 32768, PROT_READ) = 0
+mprotect(0x7f253cc18000, 4096, PROT_READ) = 0
+mprotect(0x7f253ce24000, 4096, PROT_READ) = 0
+mprotect(0x7f253d1be000, 16384, PROT_READ) = 0
+mprotect(0x7f253d519000, 32768, PROT_READ) = 0
+mprotect(0x7f253d73a000, 4096, PROT_READ) = 0
+mprotect(0x7f253d990000, 8192, PROT_READ) = 0
+mprotect(0x7f253dc15000, 4096, PROT_READ) = 0
+mprotect(0x7f253de19000, 4096, PROT_READ) = 0
+mprotect(0x7f253e044000, 8192, PROT_READ) = 0
+mprotect(0x7f253e53e000, 24576, PROT_READ) = 0
+mprotect(0x7f253e82d000, 4096, PROT_READ) = 0
+mprotect(0xe80000, 4096, PROT_READ)     = 0
+mprotect(0x7f253ea51000, 4096, PROT_READ) = 0
+munmap(0x7f253ea49000, 23468)           = 0
+set_tid_address(0x7f253ea3aa30)         = 15740
+set_robust_list(0x7f253ea3aa40, 0x18)   = 0
+futex(0x7fff7ca82fcc, FUTEX_WAKE_PRIVATE, 1) = 0
+futex(0x7fff7ca82fcc, FUTEX_WAIT_BITSET_PRIVATE|FUTEX_CLOCK_REALTIME, 1, NULL, 7f253ea3a760) = -1 EAGAIN (Resource temporarily unavailable)
+rt_sigaction(SIGRTMIN, {0x7f253ca076c0, [], SA_RESTORER|SA_SIGINFO, 0x7f253ca11060}, NULL, 8) = 0
+rt_sigaction(SIGRT_1, {0x7f253ca07750, [], SA_RESTORER|SA_RESTART|SA_SIGINFO, 0x7f253ca11060}, NULL, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+getrlimit(RLIMIT_STACK, {rlim_cur=8192*1024, rlim_max=RLIM_INFINITY}) = 0
+brk(0)                                  = 0x22a3000
+brk(0x22c4000)                          = 0x22c4000
+rt_sigaction(SIGPIPE, {SIG_IGN, [PIPE], SA_RESTORER|SA_RESTART, 0x7f253ce5c460}, {SIG_DFL, [], 0}, 8) = 0
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+mmap(NULL, 266240, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e9f8000
+open("/usr/lib/locale/locale-archive", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=2919792, ...}) = 0
+mmap(NULL, 2919792, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f2539cf6000
+close(3)                                = 0
+open("/etc/localtime", O_RDONLY)        = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=389, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0644, st_size=389, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4e000
+read(3, "TZif2\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\4\0\0\0\4\0\0\0\0"..., 4096) = 389
+lseek(3, -226, SEEK_CUR)                = 163
+read(3, "TZif2\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\4\0\0\0\4\0\0\0\0"..., 4096) = 226
+close(3)                                = 0
+munmap(0x7f253ea4e000, 4096)            = 0
+lstat("/usr/local/sbin/php", 0x7fff7ca7f690) = -1 ENOENT (No such file or directory)
+lstat("/usr/local/bin/php", {st_mode=S_IFLNK|0777, st_size=31, ...}) = 0
+readlink("/usr/local/bin/php", "/usr/local/services/php/bin/php", 4096) = 31
+lstat("/usr/local/services/php/bin/php", {st_mode=S_IFREG|0755, st_size=25817745, ...}) = 0
+lstat("/usr/local/services/php/bin", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local/services/php", {st_mode=S_IFLNK|0777, st_size=11, ...}) = 0
+readlink("/usr/local/services/php", "php-5.3.10/"..., 4096) = 11
+lstat("/usr/local/services/php-5.3.10", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local/services", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+access("/usr/local/services/php-5.3.10/bin/php", X_OK) = 0
+open("/usr/local/services/php-5.3.10/bin/php-cli.ini", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/php-5.3.10/lib/php-cli.ini", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/php-5.3.10/bin/php.ini", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/php-5.3.10/lib/php.ini", O_RDONLY) = 3
+lstat("/usr/local/services/php-5.3.10/lib/php.ini", {st_mode=S_IFREG|0644, st_size=67255, ...}) = 0
+lstat("/usr/local/services/php-5.3.10/lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local/services/php-5.3.10", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local/services", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr/local", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/usr", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+ioctl(3, SNDCTL_TMR_TIMEBASE or TCGETS, 0x7fff7ca81688) = -1 ENOTTY (Inappropriate ioctl for device)
+fstat(3, {st_mode=S_IFREG|0644, st_size=67255, ...}) = 0
+mmap(NULL, 67287, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f253e9e7000
+fstat(3, {st_mode=S_IFREG|0644, st_size=67255, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e9e6000
+lseek(3, 0, SEEK_CUR)                   = 0
+munmap(0x7f253e9e7000, 67255)           = 0
+close(3)                                = 0
+munmap(0x7f253e9e6000, 4096)            = 0
+mmap(NULL, 323584, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e9a9000
+brk(0x22e5000)                          = 0x22e5000
+brk(0x2306000)                          = 0x2306000
+brk(0x2327000)                          = 0x2327000
+futex(0x7f253de1a0b0, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/igbinary.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0p\35\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=210532, ...}) = 0
+mmap(NULL, 2138904, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2539aeb000
+mprotect(0x7f2539af5000, 2093056, PROT_NONE) = 0
+mmap(0x7f2539cf4000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x9000) = 0x7f2539cf4000
+close(3)                                = 0
+mprotect(0x7f2539cf4000, 4096, PROT_READ) = 0
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/memcached.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220h\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=276953, ...}) = 0
+mmap(NULL, 2182656, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f25398d6000
+mprotect(0x7f25398e8000, 2093056, PROT_NONE) = 0
+mmap(0x7f2539ae7000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x11000) = 0x7f2539ae7000
+close(3)                                = 0
+open("/usr/local/lib/libmemcached-1.0.4/lib/tls/x86_64/libmemcached.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmemcached-1.0.4/lib/tls/x86_64", 0x7fff7ca81ec0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmemcached-1.0.4/lib/tls/libmemcached.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmemcached-1.0.4/lib/tls", 0x7fff7ca81ec0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmemcached-1.0.4/lib/x86_64/libmemcached.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libmemcached-1.0.4/lib/x86_64", 0x7fff7ca81ec0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmemcached-1.0.4/lib/libmemcached.so.9", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@\204\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=936485, ...}) = 0
+mmap(NULL, 2328784, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253969d000
+mprotect(0x7f25396d5000, 2093056, PROT_NONE) = 0
+mmap(0x7f25398d4000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x37000) = 0x7f25398d4000
+close(3)                                = 0
+mprotect(0x7f25398d4000, 4096, PROT_READ) = 0
+mprotect(0x7f2539ae7000, 12288, PROT_READ) = 0
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/redis.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\254\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=998835, ...}) = 0
+mmap(NULL, 2363616, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f253945b000
+mprotect(0x7f2539499000, 2097152, PROT_NONE) = 0
+mmap(0x7f2539699000, 16384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3e000) = 0x7f2539699000
+close(3)                                = 0
+mprotect(0x7f2539699000, 4096, PROT_READ) = 0
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/uuid.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340!\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=94623, ...}) = 0
+mmap(NULL, 2122888, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2539254000
+mprotect(0x7f2539259000, 2097152, PROT_NONE) = 0
+mmap(0x7f2539459000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x5000) = 0x7f2539459000
+close(3)                                = 0
+mprotect(0x7f2539459000, 4096, PROT_READ) = 0
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/apc.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0p\212\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=727533, ...}) = 0
+mmap(NULL, 2280392, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2539027000
+mprotect(0x7f2539049000, 2093056, PROT_NONE) = 0
+mmap(0x7f2539248000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x21000) = 0x7f2539248000
+mmap(0x7f253924b000, 35784, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f253924b000
+close(3)                                = 0
+mprotect(0x7f2539248000, 8192, PROT_READ) = 0
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/gd.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@\301\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1013179, ...}) = 0
+mmap(NULL, 2443808, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2538dd2000
+mprotect(0x7f2538e1d000, 2097152, PROT_NONE) = 0
+mmap(0x7f253901d000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x4b000) = 0x7f253901d000
+mmap(0x7f2539023000, 14880, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f2539023000
+close(3)                                = 0
+open("/usr/local/lib/libpng-1.6.8/lib/tls/x86_64/libpng16.so.16", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libpng-1.6.8/lib/tls/x86_64", 0x7fff7ca81ec0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libpng-1.6.8/lib/tls/libpng16.so.16", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libpng-1.6.8/lib/tls", 0x7fff7ca81ec0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libpng-1.6.8/lib/x86_64/libpng16.so.16", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/libpng-1.6.8/lib/x86_64", 0x7fff7ca81ec0) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libpng-1.6.8/lib/libpng16.so.16", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\320T\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=766417, ...}) = 0
+mmap(NULL, 2303136, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2538b9f000
+mprotect(0x7f2538bd1000, 2093056, PROT_NONE) = 0
+mmap(0x7f2538dd0000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x31000) = 0x7f2538dd0000
+close(3)                                = 0
+open("/usr/local/lib/libpng-1.6.8/lib/libjpeg.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/jpeg/lib/tls/x86_64/libjpeg.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/jpeg/lib/tls/x86_64", 0x7fff7ca81e60) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/jpeg/lib/tls/libjpeg.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/jpeg/lib/tls", 0x7fff7ca81e60) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/jpeg/lib/x86_64/libjpeg.so.9", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/local/lib/jpeg/lib/x86_64", 0x7fff7ca81e60) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/jpeg/lib/libjpeg.so.9", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\20G\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1153478, ...}) = 0
+mmap(NULL, 2339392, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2538963000
+mprotect(0x7f253899e000, 2093056, PROT_NONE) = 0
+mmap(0x7f2538b9d000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3a000) = 0x7f2538b9d000
+close(3)                                = 0
+mprotect(0x7f2538b9d000, 4096, PROT_READ) = 0
+mprotect(0x7f2538dd0000, 4096, PROT_READ) = 0
+mprotect(0x7f253901d000, 20480, PROT_READ) = 0
+brk(0x2348000)                          = 0x2348000
+open("/usr/local/services/php/lib/php/extensions/no-debug-non-zts-20090626/vld.so", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\20,\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=118348, ...}) = 0
+mmap(NULL, 2134784, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2538759000
+mprotect(0x7f2538761000, 2093056, PROT_NONE) = 0
+mmap(0x7f2538960000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x7000) = 0x7f2538960000
+close(3)                                = 0
+mprotect(0x7f2538960000, 8192, PROT_READ) = 0
+futex(0x7f253d523a48, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+brk(0x2369000)                          = 0x2369000
+brk(0x238a000)                          = 0x238a000
+brk(0x23ab000)                          = 0x23ab000
+brk(0x23cc000)                          = 0x23cc000
+mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7f2537f58000
+mprotect(0x7f2537f58000, 4096, PROT_NONE) = 0
+clone(child_stack=0x7f2538757f90, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f25387589d0, tls=0x7f2538758700, child_tidptr=0x7f25387589d0) = 15741
+futex(0x7f25387589d0, FUTEX_WAIT, 15741, NULL) = 0
+socket(PF_FILE, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 3
+connect(3, {sa_family=AF_FILE, path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+close(3)                                = 0
+socket(PF_FILE, SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK, 0) = 3
+connect(3, {sa_family=AF_FILE, path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+close(3)                                = 0
+open("/etc/nsswitch.conf", O_RDONLY)    = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=475, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4e000
+read(3, "# /etc/nsswitch.conf\n#\n# Example"..., 4096) = 475
+read(3, "", 4096)                       = 0
+close(3)                                = 0
+munmap(0x7f253ea4e000, 4096)            = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=23468, ...}) = 0
+mmap(NULL, 23468, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f253ea49000
+close(3)                                = 0
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/tls/x86_64/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/x86_64-linux-gnu/tls/x86_64", 0x7fff7ca81fa0) = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/tls/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/x86_64-linux-gnu/tls", 0x7fff7ca81fa0) = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/x86_64/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/x86_64-linux-gnu/x86_64", 0x7fff7ca81fa0) = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/x86_64-linux-gnu", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+open("/usr/lib/x86_64-linux-gnu/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/lib/tls/x86_64/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/tls/x86_64", 0x7fff7ca81fa0) = -1 ENOENT (No such file or directory)
+open("/lib/tls/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/tls", 0x7fff7ca81fa0)        = -1 ENOENT (No such file or directory)
+open("/lib/x86_64/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/lib/x86_64", 0x7fff7ca81fa0)     = -1 ENOENT (No such file or directory)
+open("/lib/libnss_db.so.2", O_RDONLY)   = -1 ENOENT (No such file or directory)
+stat("/lib", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+open("/usr/lib/tls/x86_64/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib/tls/x86_64", 0x7fff7ca81fa0) = -1 ENOENT (No such file or directory)
+open("/usr/lib/tls/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib/tls", 0x7fff7ca81fa0)    = -1 ENOENT (No such file or directory)
+open("/usr/lib/x86_64/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib/x86_64", 0x7fff7ca81fa0) = -1 ENOENT (No such file or directory)
+open("/usr/lib/libnss_db.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+stat("/usr/lib", {st_mode=S_IFDIR|0755, st_size=12288, ...}) = 0
+munmap(0x7f253ea49000, 23468)           = 0
+open("/usr/local/lib/libmcrypt-2.5.8/lib/libnss_files.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0/lib/libnss_files.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/curl-7.26.0//lib/libnss_files.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/lib/libmcrypt-2.5.8//lib/libnss_files.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/local/services/mysql//lib/libnss_files.so.2", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=23468, ...}) = 0
+mmap(NULL, 23468, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f253ea49000
+close(3)                                = 0
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libnss_files.so.2", O_RDONLY) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0`\"\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0644, st_size=51736, ...}) = 0
+mmap(NULL, 2148088, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f2537d4b000
+mprotect(0x7f2537d57000, 2093056, PROT_NONE) = 0
+mmap(0x7f2537f56000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0xb000) = 0x7f2537f56000
+close(3)                                = 0
+mprotect(0x7f2537f56000, 4096, PROT_READ) = 0
+munmap(0x7f253ea49000, 23468)           = 0
+open("/etc/services", O_RDONLY|O_CLOEXEC) = 3
+fcntl(3, F_GETFD)                       = 0x1 (flags FD_CLOEXEC)
+fstat(3, {st_mode=S_IFREG|0644, st_size=19666, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4e000
+read(3, "# Network services, Internet sty"..., 4096) = 4096
+read(3, "9/tcp\t\t\t\t# Quick Mail Transfer P"..., 4096) = 4096
+read(3, "4/udp\nrmiregistry\t1099/tcp\t\t\t# J"..., 4096) = 4096
+close(3)                                = 0
+munmap(0x7f253ea4e000, 4096)            = 0
+rt_sigaction(SIGPIPE, {SIG_IGN, [PIPE], SA_RESTORER|SA_RESTART, 0x7f253ce5c460}, {SIG_IGN, [PIPE], SA_RESTORER|SA_RESTART, 0x7f253ce5c460}, 8) = 0
+brk(0x23ed000)                          = 0x23ed000
+brk(0x240e000)                          = 0x240e000
+brk(0x242f000)                          = 0x242f000
+brk(0x2450000)                          = 0x2450000
+open("/etc/protocols", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=2859, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4e000
+read(3, "# Internet (IP) protocols\n#\n# Up"..., 4096) = 2859
+close(3)                                = 0
+munmap(0x7f253ea4e000, 4096)            = 0
+open("/etc/protocols", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=2859, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4e000
+read(3, "# Internet (IP) protocols\n#\n# Up"..., 4096) = 2859
+close(3)                                = 0
+munmap(0x7f253ea4e000, 4096)            = 0
+brk(0x2471000)                          = 0x2471000
+brk(0x2492000)                          = 0x2492000
+brk(0x24b3000)                          = 0x24b3000
+brk(0x24d4000)                          = 0x24d4000
+munmap(0x7f253e9f8000, 266240)          = 0
+brk(0x2517000)                          = 0x2517000
+open("test.php", O_RDONLY)              = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=2623, ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253ea4e000
+read(3, "<?php\n    include \"include.php\";"..., 4096) = 2623
+lseek(3, 0, SEEK_SET)                   = 0
+mmap(NULL, 528384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e928000
+rt_sigaction(SIGPROF, {0x6f09d0, [PROF], SA_RESTORER|SA_RESTART, 0x7f253ce5c460}, {SIG_DFL, [], 0}, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [PROF], NULL, 8) = 0
+fstat(0, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 0), ...}) = 0
+fstat(0, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 0), ...}) = 0
+fstat(0, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 0), ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e927000
+lseek(0, 0, SEEK_CUR)                   = -1 ESPIPE (Illegal seek)
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 0), ...}) = 0
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 0), ...}) = 0
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 0), ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e926000
+lseek(1, 0, SEEK_CUR)                   = -1 ESPIPE (Illegal seek)
+fstat(2, {st_mode=S_IFREG|0664, st_size=60918, ...}) = 0
+fstat(2, {st_mode=S_IFREG|0664, st_size=60975, ...}) = 0
+lseek(2, 0, SEEK_CUR)                   = 61043
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/test.php", {st_mode=S_IFREG|0664, st_size=2623, ...}) = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home/awenzhang/awen_projects", {st_mode=S_IFDIR|0775, st_size=4096, ...}) = 0
+lstat("/home/awenzhang", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+lstat("/home", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
+ioctl(3, SNDCTL_TMR_TIMEBASE or TCGETS, 0x7fff7ca80488) = -1 ENOTTY (Inappropriate ioctl for device)
+fstat(3, {st_mode=S_IFREG|0664, st_size=2623, ...}) = 0
+mmap(NULL, 2655, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f253e925000
+munmap(0x7f253e925000, 2623)            = 0
+close(3)                                = 0
+munmap(0x7f253ea4e000, 4096)            = 0
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/./include.php", {st_mode=S_IFREG|0664, st_size=6590, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/include.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=6590, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=6590, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=6590, ...}) = 0
+mmap(NULL, 6590, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4d000
+munmap(0x7f253ea4d000, 6590)            = 0
+close(3)                                = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/include.php", {st_mode=S_IFREG|0664, st_size=6590, ...}) = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/core/core.php", {st_mode=S_IFREG|0664, st_size=14435, ...}) = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/core", {st_mode=S_IFDIR|0775, st_size=4096, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/core/core.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=14435, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=14435, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=14435, ...}) = 0
+mmap(NULL, 14435, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4b000
+brk(0x2559000)                          = 0x2559000
+munmap(0x7f253ea4b000, 14435)           = 0
+close(3)                                = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/core/err.php", {st_mode=S_IFREG|0664, st_size=600, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/core/err.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=600, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=600, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=600, ...}) = 0
+mmap(NULL, 600, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4e000
+munmap(0x7f253ea4e000, 600)             = 0
+close(3)                                = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/core/autoload.php", {st_mode=S_IFREG|0664, st_size=1314, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/core/autoload.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=1314, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=1314, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=1314, ...}) = 0
+mmap(NULL, 1314, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4e000
+munmap(0x7f253ea4e000, 1314)            = 0
+close(3)                                = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/core/routers.php", {st_mode=S_IFREG|0664, st_size=5106, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/core/routers.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=5106, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=5106, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=5106, ...}) = 0
+mmap(NULL, 5106, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4d000
+munmap(0x7f253ea4d000, 5106)            = 0
+close(3)                                = 0
+access(".///io.php", F_OK)              = -1 ENOENT (No such file or directory)
+access(".//io/json.php", F_OK)          = 0
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/.//io/json.php", {st_mode=S_IFREG|0664, st_size=346, ...}) = 0
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/.//io", {st_mode=S_IFDIR|0775, st_size=4096, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/io/json.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=346, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=346, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=346, ...}) = 0
+mmap(NULL, 346, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4e000
+munmap(0x7f253ea4e000, 346)             = 0
+close(3)                                = 0
+access(".///io.php", F_OK)              = -1 ENOENT (No such file or directory)
+access(".//io/web.php", F_OK)           = 0
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/.//io/web.php", {st_mode=S_IFREG|0664, st_size=345, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/io/web.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=345, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=345, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=345, ...}) = 0
+mmap(NULL, 345, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4e000
+munmap(0x7f253ea4e000, 345)             = 0
+close(3)                                = 0
+access(".///io.php", F_OK)              = -1 ENOENT (No such file or directory)
+access(".//io/runner.php", F_OK)        = 0
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/.//io/runner.php", {st_mode=S_IFREG|0664, st_size=950, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/io/runner.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=950, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=950, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=950, ...}) = 0
+mmap(NULL, 950, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4e000
+munmap(0x7f253ea4e000, 950)             = 0
+close(3)                                = 0
+access(".///io.php", F_OK)              = -1 ENOENT (No such file or directory)
+access(".//io/mysql.php", F_OK)         = 0
+getcwd("/home/awenzhang/awen_projects/myfirst_gitproject", 4096) = 49
+lstat("/home/awenzhang/awen_projects/myfirst_gitproject/.//io/mysql.php", {st_mode=S_IFREG|0664, st_size=4332, ...}) = 0
+open("/home/awenzhang/awen_projects/myfirst_gitproject/io/mysql.php", O_RDONLY) = 3
+fstat(3, {st_mode=S_IFREG|0664, st_size=4332, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=4332, ...}) = 0
+fstat(3, {st_mode=S_IFREG|0664, st_size=4332, ...}) = 0
+mmap(NULL, 4332, PROT_READ, MAP_SHARED, 3, 0) = 0x7f253ea4d000
+brk(0x259b000)                          = 0x259b000
+munmap(0x7f253ea4d000, 4332)            = 0
+close(3)                                = 0
+gettimeofday({1394096131, 189031}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\347\1\0\0]{tS\"NBA\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+stat("/usr/local/services/mysql-5.6.14/share/charsets/Index.xml", {st_mode=S_IFREG|0644, st_size=18316, ...}) = 0
+open("/usr/local/services/mysql-5.6.14/share/charsets/Index.xml", O_RDONLY) = 4
+read(4, "<?xml version='1.0' encoding=\"ut"..., 18316) = 18316
+close(4)                                = 0
+futex(0x7f253e613ef0, FUTEX_WAKE_PRIVATE, 2147483647) = 0
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, ";\1\0\0\3replace into db_pepper_admi"..., 319, 0, NULL, 0) = 319
+recvfrom(3, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 265706}, NULL) = 0
+gettimeofday({1394096131, 265846}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 4
+bind(4, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(4, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(4, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(4)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 4
+brk(0x25bd000)                          = 0x25bd000
+connect(4, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(4, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(4, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(4, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(4, "N\0\0\0\n5.6.14-log\0\350\1\0\0j=0v%RNq\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(4, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(4, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(3, 2 /* send and receive */)   = 0
+close(3)                                = 0
+sendto(4, "<\2\0\0\3replace into db_pepper_admi"..., 576, 0, NULL, 0) = 576
+recvfrom(4, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 349084}, NULL) = 0
+gettimeofday({1394096131, 349172}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\351\1\0\0n}I2]_E{\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(4, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(4, 2 /* send and receive */)   = 0
+close(4)                                = 0
+sendto(3, ">\4\0\0\3replace into db_pepper_admi"..., 1090, 0, NULL, 0) = 1090
+recvfrom(3, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 440759}, NULL) = 0
+gettimeofday({1394096131, 440872}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 4
+bind(4, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(4, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(4, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(4)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 4
+connect(4, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(4, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(4, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(4, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(4, "N\0\0\0\n5.6.14-log\0\352\1\0\0[BwRrf+?\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(4, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(4, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(3, 2 /* send and receive */)   = 0
+close(3)                                = 0
+sendto(4, "B\10\0\0\3replace into db_pepper_admi"..., 2118, 0, NULL, 0) = 2118
+recvfrom(4, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 517210}, NULL) = 0
+gettimeofday({1394096131, 517302}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\353\1\0\0L3XA|l-6\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(4, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(4, 2 /* send and receive */)   = 0
+close(4)                                = 0
+sendto(3, "J\20\0\0\3replace into db_pepper_admi"..., 4174, 0, NULL, 0) = 4174
+recvfrom(3, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 575539}, NULL) = 0
+gettimeofday({1394096131, 575630}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 4
+bind(4, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(4, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(4, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(4)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 4
+connect(4, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(4, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(4, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(4, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(4, "N\0\0\0\n5.6.14-log\0\354\1\0\0>;NWJKyD\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(4, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(4, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(3, 2 /* send and receive */)   = 0
+close(3)                                = 0
+sendto(4, "Z \0\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(4, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 94, 0, NULL, 0) = 94
+recvfrom(4, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 625678}, NULL) = 0
+gettimeofday({1394096131, 625768}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\355\1\0\0~2x*d=Cu\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(4, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(4, 2 /* send and receive */)   = 0
+close(4)                                = 0
+sendto(3, "z@\0\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(3, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 8318, 0, NULL, 0) = 8318
+recvfrom(3, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 684320}, NULL) = 0
+gettimeofday({1394096131, 684414}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 4
+bind(4, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(4, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(4, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(4)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 4
+connect(4, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(4, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(4, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(4, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(4, "N\0\0\0\n5.6.14-log\0\356\1\0\0rHL)$xTz\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(4, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(4, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(3, 2 /* send and receive */)   = 0
+close(3)                                = 0
+sendto(4, "\272\200\0\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(4, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 24766, 0, NULL, 0) = 24766
+recvfrom(4, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 751415}, NULL) = 0
+gettimeofday({1394096131, 751514}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\357\1\0\0005upP}F%#\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(4, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(4, 2 /* send and receive */)   = 0
+close(4)                                = 0
+brk(0x25f7000)                          = 0x25f7000
+sendto(3, ":\1\1\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(3, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 57662, 0, NULL, 0) = 57662
+recvfrom(3, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 801712}, NULL) = 0
+gettimeofday({1394096131, 801850}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 4
+bind(4, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(4, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(4, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(4)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 4
+connect(4, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(4, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(4, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(4, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(4, "N\0\0\0\n5.6.14-log\0\360\1\0\0@Z'QA5$R\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(4, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(4, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(3, 2 /* send and receive */)   = 0
+close(3)                                = 0
+mmap(NULL, 528384, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e8a5000
+brk(0x263f000)                          = 0x263f000
+munmap(0x7f253e8a5000, 528384)          = 0
+sendto(4, ":\2\2\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(4, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 123454, 0, NULL, 0) = 123454
+recvfrom(4, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 860905}, NULL) = 0
+gettimeofday({1394096131, 861162}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\361\1\0\0nd+Fa5#N\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(4, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(4, 2 /* send and receive */)   = 0
+close(4)                                = 0
+brk(0x26bf000)                          = 0x26bf000
+mmap(NULL, 790528, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f253e865000
+brk(0x273f000)                          = 0x273f000
+munmap(0x7f253e865000, 790528)          = 0
+sendto(3, ":\4\4\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(3, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 255038, 0, NULL, 0) = 255038
+recvfrom(3, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096131, 961978}, NULL) = 0
+gettimeofday({1394096131, 962270}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 4
+bind(4, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(4, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(4, "\24\0\0\0\26\0\1\3\0038\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0038\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0038\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(4, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0038\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(4)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 4
+connect(4, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(4, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(4, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(4, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(4, "N\0\0\0\n5.6.14-log\0\362\1\0\0|+\\p?)N,\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(4, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(4, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(3, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(3, 2 /* send and receive */)   = 0
+close(3)                                = 0
+mmap(NULL, 1314816, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f2537c0a000
+brk(0x27ff000)                          = 0x27ff000
+munmap(0x7f2537c0a000, 1314816)         = 0
+sendto(4, ":\10\10\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(4, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 518206, 0, NULL, 0) = 518206
+recvfrom(4, "\7\0\0\1\0\2\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+gettimeofday({1394096132, 71544}, NULL) = 0
+gettimeofday({1394096132, 71847}, NULL) = 0
+write(1, "string(4) \"", 11)            = 11
+write(1, "here", 4)                     = 4
+write(1, "\"\n", 2)                     = 2
+socket(PF_NETLINK, SOCK_RAW, 0)         = 3
+bind(3, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 0
+getsockname(3, {sa_family=AF_NETLINK, pid=15740, groups=00000000}, [12]) = 0
+sendto(3, "\24\0\0\0\26\0\1\3\0048\30S\0\0\0\0\0\0\0\0", 20, 0, {sa_family=AF_NETLINK, pid=0, groups=00000000}, 12) = 20
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"0\0\0\0\24\0\2\0\0048\30S|=\0\0\2\10\200\376\1\0\0\0\10\0\1\0\177\0\0\1"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 100
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"@\0\0\0\24\0\2\0\0048\30S|=\0\0\n\200\200\376\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 128
+recvmsg(3, {msg_name(12)={sa_family=AF_NETLINK, pid=0, groups=00000000}, msg_iov(1)=[{"\24\0\0\0\3\0\2\0\0048\30S|=\0\0\0\0\0\0\1\0\0\0\24\0\1\0\0\0\0\0"..., 4096}], msg_controllen=0, msg_flags=0}, 0) = 20
+close(3)                                = 0
+socket(PF_INET, SOCK_STREAM, IPPROTO_TCP) = 3
+connect(3, {sa_family=AF_INET, sin_port=htons(3306), sin_addr=inet_addr("127.0.0.1")}, 16) = 0
+setsockopt(3, SOL_IP, IP_TOS, [8], 4)   = 0
+setsockopt(3, SOL_TCP, TCP_NODELAY, [1], 4) = 0
+setsockopt(3, SOL_SOCKET, SO_KEEPALIVE, [1], 4) = 0
+recvfrom(3, "N\0\0\0\n5.6.14-log\0\363\1\0\0008j-?6/+)\0\377\367!"..., 16384, 0, NULL, NULL) = 82
+sendto(3, "\245\0\0\1\205\242?\0\0\0\0@!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., 169, 0, NULL, 0) = 169
+recvfrom(3, "\7\0\0\2\0\0\0\2\0\0\0", 16384, 0, NULL, NULL) = 11
+sendto(4, "\1\0\0\0\1", 5, 0, NULL, 0)  = 5
+shutdown(4, 2 /* send and receive */)   = 0
+close(4)                                = 0
+brk(0x283f000)                          = 0x283f000
+mmap(NULL, 2363392, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f2537b0a000
+brk(0x297f000)                          = 0x297f000
+munmap(0x7f2537b0a000, 2363392)         = 0
+sendto(3, ":\20\20\0\3replace into db_pepper_admi"..., 8192, 0, NULL, 0) = 8192
+sendto(3, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"..., 1044542, 0, NULL, 0) = -1 EPIPE (Broken pipe)
+--- SIGPIPE (Broken pipe) @ 0 (0) ---
+shutdown(3, 2 /* send and receive */)   = -1 ENOTCONN (Transport endpoint is not connected)
+close(3)                                = 0
+open("/usr/local/services/php/var/log/php_errors.log", O_WRONLY|O_CREAT|O_APPEND, 0644) = -1 EACCES (Permission denied)
+write(2, "PHP Fatal error:  Uncaught excep"..., 1121PHP Fatal error:  Uncaught exception 'Exception' with message 'failed to execute query,query:replace into db_pepper_admin.fortest set data=? , id=?,er:["HY000",2006,"MySQL server has gone away"]' in /home/awenzhang/awen_projects/myfirst_gitproject/core/core.php:169
+Stack trace:
+#0 /home/awenzhang/awen_projects/myfirst_gitproject/io/mysql.php(91): _CoreIo->assert(false, 14, 'failed to execu...', 'query:replace i...', 'er:["HY000",200...')
+#1 /home/awenzhang/awen_projects/myfirst_gitproject/io/mysql.php(118): IoMysql->_execute(Array, 'write')
+#2 /home/awenzhang/awen_projects/myfirst_gitproject/io/runner.php(15): IoMysql->write(Array)
+#3 /home/awenzhang/awen_projects/myfirst_gitproject/core/core.php(275): IoRunner->write(Array)
+#4 /home/awenzhang/awen_projects/myfirst_gitproject/core/core.php(101): _Core::write(5, Array)
+#5 /home/awenzhang/awen_projects/myfirst_gitproject/core/core.php(86): Core::_call('write', Array)
+#6 /home/awenzhang/awen_projects/myfirst_gitproject/include.php(191): Core::__callStatic('write', Array)
+#7 /home in /home/awenzhang/awen_projects/myfirst_gitproject/core/core.php on line 169
+) = 1121
+munmap(0x7f253e928000, 528384)          = 0
+close(2)                                = 0
+close(1)                                = 0
+munmap(0x7f253e926000, 4096)            = 0
+close(0)                                = 0
+munmap(0x7f253e927000, 4096)            = 0
+munmap(0x7f2538759000, 2134784)         = 0
+munmap(0x7f2538dd2000, 2443808)         = 0
+munmap(0x7f2538b9f000, 2303136)         = 0
+munmap(0x7f2538963000, 2339392)         = 0
+munmap(0x7f2539254000, 2122888)         = 0
+munmap(0x7f253945b000, 2363616)         = 0
+munmap(0x7f25398d6000, 2182656)         = 0
+munmap(0x7f253969d000, 2328784)         = 0
+munmap(0x7f2539aeb000, 2138904)         = 0
+munmap(0x7f2539027000, 2280392)         = 0
+clock_gettime(CLOCK_REALTIME, {1394096132, 109137295}) = 0
+munmap(0x7f253e9a9000, 323584)          = 0
+brk(0x2519000)                          = 0x2519000
+exit_group(255)                         = ?

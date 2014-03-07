@@ -101,7 +101,9 @@
 
                 if ($str[$this->pos] == $this->arg_split){       //normal args like  "1, 2, awen"
                     $arg = trim($arg, $this->arg_split);
-                    $res["ARGS"][$j++] = $arg;
+                    if ($arg) {
+                        $res["ARGS"][$j++] = $arg;
+                    }
                     $arg = '';
 
                 } else if ($str[$this->pos] == $this->open_tag) { //find another class 

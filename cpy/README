@@ -1,0 +1,182 @@
+/* we package */
+
+PROBLEMS:
+    1. have you ever been in sitution that use explode(",",$str) for many time to convert csv string into array ?
+    2. have you just find that when you write an array ($a,$b,$c) into mysql, you need a lot of simulate lines to be write ?
+    3. say you are faceing problem 2, then you find an addition log need to be add: monitor the input/output of mysql , what the fuck ...
+
+SOLUTION:
+    1. we abstract these oprations into some simple interface , like IO <read, write, close, open, flush, pop> ,  IoControl<set_attr, get_attr, del_attr>, Map<check, mapto>   
+    2. then we can write code in this way:
+
+        a = new IoExample();
+
+        a->set_attr('io', new IoMysql());
+        a->get_attr('io')->set_attr('host', 'localhost');
+        a->get_attr('io')->set_attr('port', '3600');
+        a->get_attr('io')->set_attr('user', 'test');
+        a->get_attr('io')->set_attr('passwd', 'test');
+
+
+        /*
+         *  read from csv back file & xml back file  and  write it into mysql , redis, or somewhere else 
+         */
+
+        a->set_attr('io_write_in.0', new Channel());
+        a->get_attr('io_write_in.0')->set_attr(0, new MapCsv2Arr());  // csv :   awen, 19, 1000.2, 1000.1 , 1000.0,       bob, 18, 1002.1, 1001.1, 1000.1      jury, 17, 1001.1, 1000.1, 1002.1
+        a->get_attr('io_write_in.0')->set_attr(0, new MapAverage(2)); // csv :   awen, 19, 1000.1     bob, 18, 1001.1     jury, 17, 1001.1
+        a->get_attr('io_write_in.0')->set_attr(0, new MapArr2Mysql());// query:  replace into db.table set name=awen, age=19, score=1000.1
+                                                            // query:  replace into db.table set name=bob, age=18, score=1001.1
+                                                            // query:  replace into db.table set name=jury, age=17, score=1001.1 
+        a->write(@file_get_contents("db.table.csv"));
+
+        a->get_attr('io_write_in.0')->set_attr(0, new MapXml2Arr());    // replace the first filter
+        a->write(@file_get_contents("db.table.xml"));
+
+        a->set_attr('io', new Memcached());
+        a->get_attr('io_write_in.0')->set_attr(2, new MapArr2Memcache());
+        a->write(@file_get_contents("db.table.xml");
+
+        
+        
+        may be you like functional coding , we can do it like this:
+
+        id = core_open('IoExample()');
+        core_setattr(id, 'io', new IoMysql);
+        core_setattr(id, 'io.host', 'localhost');
+        core_setattr(id, 'io.port', '3600');
+        core_setattr(id, 'io.user', 'test');
+        core_setattr(id, 'io.passwd', 'test');
+
+        /* do things just like example above */
+        core_setattr(id, 'io_write_in.0', new Channel());
+        core_setattr(id, 'io_write_in.0.0', new MapCsv2Arr());
+        core_setattr(id, 'io_write_in.0.1', new MapAverate(2));
+        core_setattr(id, 'io_write_in.0.2', new MapArr2Mysql());
+
+        core_write(id, @file_get_contents("db.table.xml"));
+        ...
+
+
+
+
+        the functional way may be more safe, consider this two lines:
+
+           1.   a->get_attr("io_write_in.0")->set_attr(0, new MapCsvArr);   // when attr "io_write_in.0" has no method set_attr(), it will crash
+           2.   core_setattr(a, "io_write_in.0.0", new MapCsvArr);          // safe
+          
+
+
+        
+ADVANCED:
+
+        the get_attr() and set_attr()  methods is not convient, when we want to describe the step :
+        "1. open an io
+         2. set some io attributes;
+         3. add additional input formates on "read-in params" , so that we can receive different data struct ( like "abc"<string>, (a,b,c)<array>, new (a,b,c)<obj> ..... )
+         4. and the same situation happends on  "write-in params"
+         5. may be we also want to do some data translation when "inputing" data 
+         6. and the same situation happends on  "outputing"
+         "
+
+         then we can abstract out four channels:
+                channel:    read-in
+                channel:    read-out
+                channel:    write-in
+                channel:    write-out
+         
+         so we design several methods like these :
+
+            /* channel methods, maybe we can do it automatically */
+            build_read_in_channel(io);  //
+            build_read_out_channel(io); //
+            build_write_in_channel(io); //
+            build_write_out_channel(io);//
+
+            add_filter(io, channel, new Filter);  
+            set_filter(io, channel, fid, new Filter);
+            del_filter(io, channel, fid);
+            add_option_on_filter(io, channel, filter, new Map);     // or maybe we should call it just  add_option(...);
+            set_option_on_filter(io, channel, filter, oid, new Map);
+            del_option_on_filter(io, channel, filter, pos);
+
+
+            
+
+
+FINALLY:
+        
+        we finally got interfaces like these:
+
+
+                    1. functional procedures , you can find them in 'func.php'
+
+            /* about io */
+
+            core_open(io_path)   >   io_id
+
+            core_close(io_id)   >   true | false
+
+            core_get_filters(io_id, channel<enum>)  > filter_ids    <array>
+
+            core_add_filter(io_id, channel<enum>, filter)   >   filter_id
+
+            core_set_filter(io_id, channel<enum>, filter_id, filter)    >   true | false
+
+            core_del_filter(io_id, channel<enum>, filter_id)    > true | false
+
+            core_get_filter_options(io_id, channel<enum>, filter_id)    >   option_ids <array>
+
+            core_add_filter_option(io_id, channel<enum>, filter_id, option)    >   option_id
+
+            core_set_filter_option(io_id, channel<enum>, filter_id, option_id, option)    >   true | false
+
+            core_del_filter_option(io_id, channel<enum>, filter_id, option_id)      >   true | false
+
+
+            /* about class loader */
+
+            core_set_classloader(loader);
+
+
+            /* about self-define jobs */
+
+            core_set_jobloader(loader);
+            
+            core_run(job_path);
+
+
+            /* about error handle solution */
+            
+            core_set_errorlevel(err_level<enum>);   
+
+            core_assert();
+
+
+
+                    2. object methods  , in 'core.php'
+
+            /* about io*/
+            Core::open(io_path)     >   io_id  
+            Core::close(io_id)      >   ture | false
+            Core::add_filter(io_id, channel<enum>, filter)      >   filter_id
+            Core::set_filter(io_id, channel<enum>, filter_id, filter)       >   true | false
+            Core::del_filter(io_id, channel<enum>, filter_id)   >   true | false
+            Core::add_filter_option(io_id, channel<enum>, filter_id)    >   option_id
+            Core::set_filter_option(io_id, channel<enum>, filter_id, option_id,  option)
+            Core::del_filter_option(io_id, channel<enum>, filter_id, option_id)     >   true | false
+
+            /* about self-define jobs */
+            Core::set_jobloader(loader);    >   true | false 
+            Core::run(job_path);
+
+            /* about error handle solution */
+            Core::set_errorlevel(err_level<enum>);
+            Core::assert();
+
+
+
+        whenever you find some jokes, i will be very appreciate if you share with me , i love them , thank you and have fun ~
+
+
+

@@ -1,4 +1,5 @@
 <?php
+
     /* PDO mysql class
      *
      * autho: awen
@@ -17,6 +18,7 @@
             $this->port = @$params[1];
             $this->user = @$params[2];
             $this->passwd = @$params[3];
+            $this->conn = new PDO("mysql:host=".$this->host.";port=".$this->port, $this->user, $this->passwd);
         }
 
         /*
@@ -87,7 +89,7 @@
                 $st = $this->conn->prepare($query);
                 if ($this->_arr_dimention($pdo_query['columns']) == 1) {
 
-                    self::assert($st->execute($pdo_query["columns"]) === true, CORE_ERR_IO, "failed to execute query", "query:".$query);
+                    self::assert($st->execute($pdo_query["columns"]) === true, CORE_ERR_IO, "failed to execute query", "query:".$query, "er:".@json_encode($st->errorInfo()));
 
                     return $this->_result($st, $type);
 
@@ -107,68 +109,13 @@
         }
 
         public function read($pdo_query=null){
-            $this->conn = new PDO("mysql:host=".$this->host.";port=".$this->port, $this->user, $this->passwd);
             return $this->_execute($pdo_query, "read");
         }
 
         public function write($pdo_query){
-            $this->conn = new PDO("mysql:host=".$this->host.";port=".$this->port, $this->user, $this->passwd);
             return $this->_execute($pdo_query, "write");
 
         }
 
         public function flush_normally(){}
     }
-
-/*
-
-
-    class IoMemcached extends _CoreIo{
-        public function __construct($params) {
-            $this->host = @$params[0];
-            $this->port = @$params[1];
-        }
-        public function read("get($id)"){}
-    }
-
-
-    class IoRedis extends _CoreIo{
-        public function __construct($params) {
-            $this->host = @$params[0];
-            $this->port = @$params[1];
-        }
-        public function read("get($id)"){}
-    }
-
-    class IoMpi extends _CoreIo{
-        const STOR_TYPE_MYSQL = 1; 
-        const STOR_TYPE_REDIS = 2;
-
-        private $storage;
-        private $storage_type;
-
-        private $op_mysql_db;
-        private $op_mysql_table;
-
-        public function __construct($params){
-            $this->storage = $params[0];  //mysql or redis
-            $this->storage_type = $params[1];  //storage type
-
-            $this->table_router = $params[2];//table_router
-            $this->cache = $params[3];   //memcached
-        }
-        private function _read_storage($id) {
-            if ($this->storage_type == self::STORE_TYPE_MYSQL) {
-                return $this->storage->read("select * from ".$this->op_mysql_db.".".$this->op_mysql_table." where id=".$id.";");
-            }else if($this->storage_type == self::STORE_TYPE_
-        }
-
-        public function read($id, $index){
-            if (!$this->cache->read(array("k"=>$id, "op"=>"get"))) {
-                return $this->storage($id);       
-            }
-        }
-    }
-
-    */
-
