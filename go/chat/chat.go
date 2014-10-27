@@ -84,6 +84,57 @@ func (c *connect) write_out(){}
 
 
 
+type	point	interface {
+	Read(data []byte) int64, error
+	Write(data  []byte) int64, error
+}
+
+type	client	struct {
+	sock	*net.Conn
+	buff	[SRV_CONN_BUFF_SIZE]byte
+	buff_len	size_t
+	buff_is_empty	chan bool
+
+	//Read(data []byte) int64, error
+	//Write(data []byte) int64, error
+}
+
+type	proxy	struct {
+}
+
+/* protocols */
+// login package 
+func read_login_package (c *net.Conn) ver_t, role_t, uid_t, token_t{
+}
+
+// login 
+func write_login_package (c *net.Conn, version ver_t, role role_t, userid uid_t, login_token token_t) {
+}
+
+// data package from client
+func read_data_from_client (c *net.Conn, buff []byte) size_t, receiver uid_t {
+}
+
+// data package from server 
+func read_data_from_server (c *net.Conn, buff []byte) size_t, sender uid_t {
+}
+
+// data package from proxy server
+func read_data_from_proxy (c *net.Conn, buff []byte) size_t, sender uid_t, receiver uid_t {
+}
+
+// data package sent to client
+func write_data_to_client (c *net.Conn, buff []byte, bytes size_t, sender uid_t) size_t {
+}
+
+// data package sent to server 
+func write_data_to_server (c *net.Conn, buff []byte, bytes size_t, sender uid_t) size_t {
+}
+
+// data package sent to proxy server 
+func write_data_to_proxy (c *net.Conn, buff []byte, bytes size_t, sender uid_t, receiver_uid_t) size_t {
+}
+
 
 type  http struct {
 	sock *net.Conn
