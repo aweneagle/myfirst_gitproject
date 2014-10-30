@@ -1,15 +1,13 @@
 package main
-import "fmt"
 
-type test_t int
+const A = 1
+const B = 2
+const C = A + B
 
-func  main(){
-	var a test_t
-	a = 1
-	fmt.Println("a is ", a)
-
-	b := make (map[test_t]string)
-	b[24] = "awen"
-
-	fmt.Println("b is ", b)
+func main() {
+	defer func () {
+		recover()
+	}()
+	panic(C)
 }
+

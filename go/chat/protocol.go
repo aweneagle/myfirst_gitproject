@@ -1,9 +1,5 @@
 /* protocols of chat server
  *
- *	client <-> server,		see		read_login_package(), read_data_from_client(), write_data_to_client()
- *
- *	proxy_server <-> server,	see	read_login_package(), read_data_from_proxy(), write_data_to_proxy()
- *
  *
  * by awen , 2014.10.28
  */
@@ -11,158 +7,278 @@
 
 package chat
 
+
 import "encoding/binary"
 
-/* read package 
- * package struct:
- *		[package_len (2|8 bytes)][data bytes ...]
+/* panic error no */
+const P_ERR_READ_SOCK = 1
+const P_ERR_TOO_LARGE_PACKAGE = 2
+const P_ERR_WRONG_LOGIN_PACK_LEN = 3
+const P_ERR_WRONG_DATA_LEN = 4
+const P_ERR_RELOGIN = 5
+
+
+/* 
+ * packages : 
+ *
+ * client <-> server 
+ * server <-> server
+ *
+ *		1.0  version
+ *	login	[package_len (2|8bytes)] [version (2bytes) = "10"] [userid (4|8bytes)] [token (32bytes)] [role 1byte]
+ *	data	[package_len (2|8bytes)] [receiver (4|8bytes)] [data bytes ...]
+ *	heart_beat	[package_len = "00" (2bytes)]
+ * 
+ *		2.0	version
+ *	login	[package_len (2|8bytes)] [version (2bytes) = "20"] [userid (4|8bytes)] [token (32bytes)] [role 1byte]		
+ *	data	[package_len (2|8bytes)] [cmd = 1 (1byte)] [receiver (4|8bytes)] [data bytes ...]
+ *	heart_beat	[package_len = 3 (2bytes)] [cmd = 2 (1byte)]
+ * 
+ */
+const CONN_MAX_BUFF_LEN = 1024
+
+type connect struct {
+	sock	*net.Conn
+	buff	[CONN_MAX_BUFF_LEN]byte
+	buff_len	uint64		//total data read from socket 
+
+	pack	struct {
+		data	[]byte
+		data_len	uint64
+		pack_len	uint64
+	}
+
+	user_login	bool
+	user	pk_login
+}
+
+
+
+
+
+/* login package */
+const	ROLE_PROXY = 0
+const	ROLE_CLIENT = 1
+
+type pk_login struct {
+	version	string
+	userid	uint64
+	token	string
+	role	uint8	//ROLE_CLIENT (client -> server), ROLE_PROXY (server -> server)
+}
+
+/* heart package */
+type pk_heartbeat struct {
+}
+
+/* data package */
+const	RECV_TYPE_USER = 1
+const	RECV_TYPE_GROUP = 0
+
+type pk_data struct {
+	receiver	uint64
+	receiver_type	uint4	// RECV_TYPE_USER ,  RECV_TYPE_GROUP
+	data	[]byte
+
+	orig_pack	[]byte		/* original package, used for copying a whole package */
+}
+
+
+
+/* create a new connect object to handle packages from client or proxy server
+ * 
+ * @param	c	*net.Conn, socket
+ * @return	conn	*connect
+ */
+func CreateConn(c *net.Conn) conn *connect{
+	conn := new (connect)
+	conn.sock = c
+	conn.buff_len = 0
+
+	conn.pack.data = nil
+	conn.pack.data_len = 0
+
+	conn.user_login = false
+	return conn
+}
+
+
+/* read in a whole package from socket into buff
  *
  */
- func read_package (c *net.Conn, pack *data) bytes uint64 {
+func (c *connect) read_in_package() {
 
-	 /* why data-buff write begin with 8 ?
-	  *   "to resove a space for some additional information so that we will not need to copy or 
-	  * move the whole data buffer memory when the "data frame" is changed"
-	  */
+	bytes, err := c.sock.Read(c.buff[0 : ] )
+	if err != nil {
+		panic(P_ERR_READ_SOCK)
+	}
 
-	 /* read [package_len (2|8 byte)] */
-	 _, err := c.Read(pack.buff[8:16]);
-	 if err != nil {
-		 panic (err.Error())
-	 }
+	c.pack.data_len , num_bytes := bytes2num_2_8(c.buff[0 : 8])
+	c.pack.pack_len = num_bytes + c.pack.data_len
+	if c.pack.pack_len > CONN_MAX_BUFF_LEN {
+		panic(P_ERR_TOO_LARGE_PACKAGE)
+	}
 
-	 pack_len, bytes := get_number_from_bytes_2_8(pack.buff[8:16])
+	c.pack.data = c.buff[num_bytes : num_bytes + c.pack.data_len]
 
-	 /* 8 byte space resoved for additional information , 8 bytes for [package_len] itself */
-	 if pack_len + 8 + 8 > SRV_CONN_BUFF_SIZE {
-		 panic ("too large package")
-	 }
+	for bytes < num_bytes + c.pack.data_len {
+		n, err := c.sock.Read(c.buff[bytes : ])
+		bytes += n
 
-	 pack.bytes = pack_len
+		if err != nil {
+			panic(P_ERR_READ_SOCK)
+		}
 
-	 /* small package */
-	 if pack.bytes <= 8 {
-		 return
-	 }
+	}
+	c.buff_len = bytes
 
-	 c.Read(pack.buff[8:
+}
 
 
- }
+/* fetch login info 
+ *	login	[package_len (2|8bytes)] [version (2bytes) = "10"] [userid (4|8bytes)] [token (32bytes)] [role 1byte]
+ */
+func (c *connect) Login(){
+	c.read_in_package()
 
-/* login package , the first data package we must received when connect established succefully.
- * it's sent from client side to server side
- * package struct:
- *		[package_len(2|8bytes)] [version (3byte)] [role (1byte)] [userid (4|8 bytes)] [token (32 bytes)]
- *
- *		version:	1.0.1		each bytes represents an integer  
- *		role:		1			ROLE_PROXY_CLIENT, ROLE_CLIENT
- *		userid:		1211		if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer
- *		token:		0afccbdedf...	a 32-bytes md5 string
- *
- * when wrong data received , function will panic 
+	if c.pack.data_len != 40 || c.pack.data_len != 44 {
+		panic(P_ERR_WRONG_LOGIN_PACK_LEN)
+	}
+	var bytes int
+	var role uint64
+	i := 2
+
+	c.user.version = string(c.pack.data[0 : i])
+	c.user.userid,bytes = bytes2num_4_8(c.pack.data[i : ])
+
+	i += bytes
+	c.user.token = string(c.pack.data[i : i+32])
+
+	i += 32
+	role,_ = binary.Uvarint(c.pack.data[i : i+1])
+	c.user.role = uint8(role)
+
+}
+
+/* write buff data into socket 
  *
  */
-
-func read_login_package (pack *data) version int32, role int8, userid uint64, token string {
+func (c *connect) Write (buff []byte) {
+	c.sock.Write(buff)
 }
 
 
 
 
-
-
-
-/************************* comunications betweem client and server ***********************/
-
-type receiver struct {
-	id		uint64			// userid or groupid
-	id_type	uint4			// id type, 1: userid, 2:group_id
-}
-
-type data struct {
-	buff []byte
-	bytes uint64
-}
-
-/* read a whole data package from client
- * package struct :
- *		[package_len (2|8 bytes)] [receiver (4|8 bytes)] [data bytes]
- *
- *		receiver:	1200		if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer
- *		data_len:	121			if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer (with the first bit turned to 0)
- *		data:		bytes
- *
+/**************** protocol  version 1.0 **********************
+ *	data	[package_len (2|8bytes)] [receiver (4|8bytes)] [data bytes ...]
+ *	heart_beat	[package_len = "00" (2bytes)]
  */
-func read_data_from_client(pack *data, data *data, receiver *receiver) {
+func (c *connect) ReadIn_V1 () interface {} {
+	c.read_in_package()
+
+	if c.pack.data_len == 0 {
+		/* heartbeat */
+		return new(pk_heartbeat)
+
+	} else if c.pack.data_len < 4{
+		panic(P_ERR_WRONG_DATA_LEN)
+
+	} else {
+		/* data frame */
+		data := new (pk_data)
+
+		var num_bytes int
+		var receiver uint64
+		receiver, num_bytes = bytes2num_4_8(c.pack.data[0 : ])
+		data.receiver, data.receiver_type = uint64_to_receiver(receiver)
+
+		data.data = c.pack.data[num_bytes : c.pack.data_len - num_bytes]
+
+		data.orig_pack = c.buff[0 : c.pack.pack_len]
+
+		return data
+	}
 }
 
-func write_data_to_server(pack *data, data *data, receiver *receiver) {
+func (c *connect) Handle (cmd interface{}, s *server) {
+	switch cmd.(type) {
+	case pk_login:
+		panic(P_ERR_RELOGIN)
+
+	case pk_data:
+		/* send out data package */
+		switch cmd.receiver_type {
+		case RECV_TYPE_USER:
+			s.send_to_user(cmd);
+
+		case RECV_TYPE_GROUP:
+			s.send_to_group(cmd);
+
+		default:
+			fmt.Println("[WARNING] wrong receiver type")
+
+		}
+
+	case pk_heartbeat:
+		/* heart beat */
+	}
 }
 
 
-/* write a whole data package to client 
- * package struct :
- *		[package_len (2|8 bytes)] [sender (4|8 bytes)] [receiver (4|8 bytes)] [data bytes]
- *
- *		receiver:	1201		if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer
- *		sender:		1200		if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer
- *		data_len:	121			if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer (with the first bit turned to 0)
- *		data:		bytes
- */
-func write_data_to_client(pack *data, data *data, sender uint64, receiver *receiver) {
-}
 
-func read_data_from_server(pack *data, receiver *receiver) bytes uint64, sender uint64{
-}
 
 
 
 /************ to find out "how much bytes need to represent a number" , or "what number is represented by given bytes" *************/
 
-func get_number_from_bytes_2_8(buff []byte) number uint64, bytes_len int{
+func bytes2num_4_8(buff []byte) number uint64, bytes_len int{
 }
 
-func get_number_bytes_len_2_8(number uint64) bytes_len int{
+func bytes2num_2_8(buff []byte) number uint64, bytes_len int{
 }
 
-
-
-func get_number_from_bytes_4_8(buff []byte) number uint64, bytes_len int{
+func num2bytes_2_8(buff []byte, number uint64) bytes_len int {
 }
 
-func get_number_bytes_len_4_8(number uint64) bytes_len int{
+func num2bytes_4_8(buff []byte, number uint64) bytes_len int {
 }
 
+func uint64_to_receiver( number uint64 ) receiver uint64, receiver_type uint4 {
+}
 
-
-func put_number_into_bytes(buff []byte, bytes int, number uint64){
+func receiver_to_uint64( receiver uint64, receiver_type uint4 ) uint64 number {
 }
 
 /*************************************************************************************************************************************/
 
 
-
-
-
-
-
-
-
-/************************* comunications betweem proxy and server ***********************/
-
-/* read a whole data package from proxy server 
- * package struct :
- *		[package_len (2|8 bytes)] [sender (4|8 bytes)] [receiver (4|8 bytes)] [data (`data_len` bytes)]
- *
- *		receiver:	1201		if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer
- *		sender:		1200		if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer
- *		data_len:	121			if first bit is 0, it is a 4-bytes integer; or it is a 8-bytes integer (with the first bit turned to 0)
- *		data:		bytes
- */
-
-func read_data_from_proxy(pack *data, receiver *receiver) bytes uint64, sender uint64 {
+type http struct {
+	server	string	// host":"port
+	sock	*net.Conn
+	keep_alive	bool	//whether to keep alive or not
 }
 
-func write_data_to_proxy(pack *data, sender uint64, receiver *receiver) {
+func (h *http) read_in() interface{} {
 }
+
+func (h *http) write_out( buff []byte ){
+}
+
+func (h *http) end(){
+}
+
+/* send a http request , and recv a response
+*/
+func request(uri string) {
+}
+
+
+func CreateHttp(c *net.Conn){
+	http := new (http)
+	http.sock = c
+	keep_alive = true
+}
+
+
+
