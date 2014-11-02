@@ -8,7 +8,8 @@
 package chat
 
 
-import "encoding/binary"
+import	"encoding/binary"
+import	"errors"
 
 /* panic error no */
 const P_ERR_READ_SOCK = 1
@@ -29,8 +30,8 @@ const P_ERR_TOKEN_TOO_LONG = 9
  * server <-> server
  *
  *		1.0  version
- *	user_login	[package_len (2|8bytes)] [version (2bytes) = "10"] [role = "1" 1byte] [userid (4|8bytes)] [token (32bytes)] 
- *	proxy_login	[package_len (2|8bytes)] [version (2bytes) = "10"] [role = "0" 1byte] [server (32bytes)] [pwd (32bytes)] 
+ *	user_login	[protocol (4 bytes) = "CHAT"] [package_len (2|8bytes)] [version (2bytes) = "10"] [role = "1" 1byte] [userid (4|8bytes)] [token (32bytes)] 
+ *	proxy_login	[protocol (4 bytes) = "CHAT"] [package_len (2|8bytes)] [version (2bytes) = "10"] [role = "0" 1byte] [server (32bytes)] [pwd (32bytes)] 
  *	data	[package_len (2|8bytes)] [receiver (4|8bytes)] [data bytes ...]
  *	heart_beat	[package_len = "00" (2bytes)]
  * 
@@ -41,7 +42,7 @@ const CONN_MAX_BUFF_LEN = 1024
 const PROTOCOL_VERSION_1 = "10"
 
 type connect struct {
-	sock	*net.Conn
+	sock	*stream
 	read_buff	[CONN_MAX_BUFF_LEN]byte
 	r_buff_len	uint64		//total data read from socket 
 
@@ -79,10 +80,10 @@ type command interface {
 
 /* create a new connect object to handle packages 
  * 
- * @param	c	*net.Conn, socket
+ * @param	c	*stream, buffered socket
  * @return	conn	*connect
  */
-func create_connect(c *net.Conn) conn *connect{
+func create_connect(c *stream) conn *connect{
 	conn := new (connect)
 	conn.sock = c
 	conn.r_buff_len = 0
@@ -138,20 +139,21 @@ type pk_user_login struct {
 
 func (p *pk_user_login) init_from_buff (c *connect) {
 
-	i := 3
+	i := 7
 	p.userid, bytes = bytes2num_4_8(c.pack.data[i : ])
 
 	i += bytes
 	p.token = string(c.pack.data[i : i+32]
 }
 
-func (p *pk_user_login) send_to_conn (c *connect) {
-	var buff [51]byte	//[pack_len (2bytes)] [version (2bytes)] [role (1byte)] [userid (4|8 bytes)] [token (32 bytes)]
+func (p *pk_user_login) send_to_conn (c *connect) error {
+	var buff [51]byte	//[pack_len (2bytes)] [protocol (4bytes)] [version (2bytes)] [role (1byte)] [userid (4|8 bytes)] [token (32 bytes)]
 	if len(p.token) > 32 {
-		panic(P_ERR_TOKEN_TOO_LONG)
+		return errors.New("wrong login token")
 	}
 
-	i := 2
+	copy(buff[2 : 6], []byte("CHAT"))
+	i := 6
 	copy(buff[i:i+2], c.version)
 	i += 2
 	copy(buff[i:i+1], ROLE_USER)
@@ -164,6 +166,8 @@ func (p *pk_user_login) send_to_conn (c *connect) {
 	num2bytes_4_8(buff[0 : 2],  i - 2)
 
 	c.sock.Write(buff[0 : i])
+
+	return nil
 }
 
 
@@ -274,16 +278,16 @@ func (p *v1_pk_data) send_to_conn(c *connect) {
 /* fetch command from package 
 *
 */
-func (c *connect) fetch_cmd() command {
+func (c *connect) fetch_cmd() command, error {
 	if !c.is_login {
 
 		//fetch login command
-		if c.pack.data_len != 40 || c.pack.data_len != 44 {
-			panic(P_ERR_WRONG_LOGIN_PACK_LEN)
+		if c.pack.data_len != 43 || c.pack.data_len != 47 {
+			return nil, errors.New("wrong login package len")
 		}
 
-		c.version = string(c.pack.data[0 : 2])	// login: version
-		c.role = binary.Uvarint(c.pack.data[2 : 3])	//login: role
+		c.version = string(c.pack.data[4 : 6])	// login: version
+		c.role,_ = binary.Uvarint(c.pack.data[6 : 7])	//login: role
 
 		switch c.role {
 
@@ -351,9 +355,9 @@ func (c *connect) read_in_package() {
 		panic(P_ERR_TOO_LARGE_PACKAGE)
 	}
 
-	c.pack.data = c.read_buff[num_bytes : num_bytes + c.pack.data_len]
+	c.pack.data = c.read_buff[num_bytes : c.pack.pack_len]
 
-	for bytes < num_bytes + c.pack.data_len {
+	for bytes < c.pack.pack_len {
 		n, err := c.sock.Read(c.read_buff[bytes : ])
 		bytes += n
 
