@@ -5,11 +5,8 @@
 
 package chat
 
-import	"fmt"
 import	"net"
 import	"strconv"
-import	"strings"
-import	"os"
 
 
 type client struct {
@@ -27,14 +24,14 @@ type client struct {
  * @param	host,	server host
  * @param	port,	server port
  */
-func NewClient(host string, port uint64) client, error {
+func NewClient(host string, port uint64) (*client, error) {
 	cli := new (client)
 	sock,err := net.Dial("tcp", host + ":" + strconv.FormatUint(port, 10))
 	if err != nil {
 		return nil, err
 	}
 
-	cli.conn = create_stream(sock)
+	cli.conn = create_connect(create_stream(&sock))
 	cli.host = host
 	cli.port = port
 	return cli, nil
@@ -50,7 +47,7 @@ func (c *client) UserLogin(userid uint64, passwd string) error {
 	var login pk_user_login
 	login.userid = userid
 	login.token = passwd
-	return c.conn.write_cmd(login)
+	return c.conn.write_cmd(&login)
 }
 
 
@@ -60,7 +57,7 @@ func (c *client) UserLogin(userid uint64, passwd string) error {
 func (c *client) SendToUser(msg string, receiver uint64) error {
 	var data v1_pk_data
 	data.init_pack([]byte(msg), receiver, RECV_TYPE_USER)
-	return c.write_cmd(data)
+	return c.conn.write_cmd(&data)
 }
 
 
@@ -69,14 +66,14 @@ func (c *client) SendToUser(msg string, receiver uint64) error {
 func (c *client) SendToGroup(msg string, receiver uint64) error {
 	var data v1_pk_data
 	data.init_pack([]byte(msg), receiver, RECV_TYPE_GROUP)
-	return c.write_cmd(data)
+	return c.conn.write_cmd(&data)
 }
 
 
 /* read message from server 
  */
-func (c *client) Read( message []byte ) int {
+func (c *client) Read( message []byte ) uint64 {
 	c.conn.read_buff = message
-	c.read_in_package()
+	c.conn.read_in_package()
 	return c.conn.r_buff_len
 }

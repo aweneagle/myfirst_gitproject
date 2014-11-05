@@ -9,25 +9,25 @@ type stream struct {
 	buff_len	int
 }
 
-func (r *stream) create_stream(c *net.Conn) {
-	r = new stream
+func  create_stream(c *net.Conn) *stream {
+	r = new (stream)
 	r.buff_len = 0
 	r.sock = c
 	return r
 }
 
-func (r *stream) Read (buff []byte) int, error{
+func (r *stream) Read (buff []byte) (int, error){
 	if r.buff_len == 0 {
-		return r.sock.Read(buff)
+		return r.sock.Read(buff), nil
 	} else {
-		buff_read_len := copy(buff[0, r.buff_len], r.buff[0, r.buff_len])
+		buff_read_len := copy(buff[0 : r.buff_len], r.buff[0 : r.buff_len])
 		sock_read_len := r.sock.Read(buff[r.buff_len : ])
 		r.buff_len = 0
 		return sock_read_len + buff_read_len, nil
 	}
 }
 
-func (r *stream) Write(buff []byte) int, error {
+func (r *stream) Write(buff []byte) (int, error) {
 	return r.sock.Write(buff)
 }
 

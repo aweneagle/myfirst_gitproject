@@ -5,7 +5,6 @@
 
 package chat
 
-import	"fmt"
 import	"net"
 import	"strconv"
 import	"strings"
@@ -32,8 +31,8 @@ type server struct {
  message_channel_on	bool
  http_channel_on	bool
 
- groups	map[uint64][uint64]uint4	// map[ group_id ][ userid ] = 1
- on_other_groups	map[uint64][string]uint4	//groups on other proxy servers, map[ group_id ][ server_name ] = 1
+ groups	map[uint64]map[uint64]uint8	// map[ group_id ][ userid ] = 1
+ on_other_groups	map[uint64]map[string]uint8	//groups on other proxy servers, map[ group_id ][ server_name ] = 1
 
  host	string
  port	uint64
@@ -116,8 +115,8 @@ func (s *server) handle_tcp_sock(c *net.Conn) {
 			s.log_error("message channel closed")
 			return
 		}
-		conn := new connect(stream)
-		cmd := conn.login()
+		conn := create_connect(stream)
+		cmd := conn.accept_login()
 		s.handle_message_command(cmd, conn)
 		for {
 			cmd = conn.read_cmd()
@@ -149,7 +148,7 @@ func (s *server) handle_tcp_sock(c *net.Conn) {
 		s.log_error("http channel closed")
 		return
 	}
-	conn := new http(stream)
+	conn := create_http(stream)
 	for {
 		request := conn.read_request()
 		resp := s.handle_http_request(request, conn)
@@ -283,7 +282,7 @@ func (s *server) handle_message_command(cmd *command, c *connect) int {
 	return succ
 }
 
-func (s *sever) handle_http_request(req *http_request, h *http) resp string {
+func (s *sever) handle_http_request(req *http_request, h *http) string {
 	resp := ""
 
 	switch req.uri {

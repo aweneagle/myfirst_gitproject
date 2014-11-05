@@ -43,7 +43,7 @@ const PROTOCOL_VERSION_1 = "10"
 
 type connect struct {
 	sock	*stream
-	read_buff	[CONN_MAX_BUFF_LEN]byte
+	read_buff	[]byte
 	r_buff_len	uint64		//total data read from socket 
 
 
@@ -83,11 +83,12 @@ type command interface {
  * @param	c	*stream, buffered socket
  * @return	conn	*connect
  */
-func create_connect(c *stream) conn *connect{
+func create_connect(c *stream) *connect{
 	conn := new (connect)
 	conn.sock = c
 	conn.r_buff_len = 0
 
+	conn.read_buff = make([]byte, CONN_MAX_BUFF_LEN)
 	conn.pack.data = nil
 	conn.pack.data_len = 0
 
@@ -100,18 +101,18 @@ func create_connect(c *stream) conn *connect{
 /* handle login package from client or proxy
  *	
  */
-func (c *connect) login() command {
+func (c *connect) accept_login() (command , error){
 	if !c.is_login {
 		c.read_in_package()
 		return c.fetch_cmd()
 	}
-	return nil
+	return nil, errors.New("not login")
 }
 
 /*  read in a command from peer
  *
  */
-func (c *connect) read_cmd() command {
+func (c *connect) read_cmd() (command , error){
 	c.read_in_package()
 	return c.fetch_cmd()
 }
@@ -140,10 +141,11 @@ type pk_user_login struct {
 func (p *pk_user_login) init_from_buff (c *connect) error {
 
 	i := 7
+	var bytes int
 	p.userid, bytes = bytes2num_4_8(c.pack.data[i : ])
 
 	i += bytes
-	p.token = string(c.pack.data[i : i+32]
+	p.token = string(c.pack.data[i : i+32])
 
 	return nil
 }
@@ -165,7 +167,7 @@ func (p *pk_user_login) send_to_conn (c *connect) error {
 	tl := len(p.token)
 	copy(buff[i : i+tl], p.token)
 	i += tl
-	num2bytes_4_8(buff[0 : 2],  i - 2)
+	num2bytes_4_8(buff[0 : 2],  uint64(i - 2))
 
 	c.sock.Write(buff[0 : i])
 
@@ -270,13 +272,13 @@ const	RECV_TYPE_GROUP = 0
 
 type v1_pk_data struct {
 	receiver	uint64
-	receiver_type	uint4	// RECV_TYPE_USER ,  RECV_TYPE_GROUP
+	receiver_type	uint8	// RECV_TYPE_USER ,  RECV_TYPE_GROUP
 	data	[]byte
 
 	_orig_pack	[]byte		/* original package, used for copying a whole package */
 }
 
-func (p *v1_pk_data) init_pack(data []byte, receiver uint64, receiver_type uint4){
+func (p *v1_pk_data) init_pack(data []byte, receiver uint64, receiver_type uint8){
 	p.receiver = receiver
 	p.receiver_type = receiver_type
 
@@ -316,7 +318,7 @@ func (p *v1_pk_data) send_to_conn(c *connect) error {
 /* fetch command from package 
 *
 */
-func (c *connect) fetch_cmd() command, error {
+func (c *connect) fetch_cmd() (command, error) {
 	if !c.is_login {
 
 		//fetch login command
@@ -387,7 +389,8 @@ func (c *connect) read_in_package() {
 		panic(P_ERR_READ_SOCK)
 	}
 
-	c.pack.data_len , num_bytes := bytes2num_2_8(c.read_buff[0 : 8])
+	var num_bytes int
+	c.pack.data_len , num_bytes = bytes2num_2_8(c.read_buff[0 : 8])
 	c.pack.pack_len = num_bytes + c.pack.data_len
 	if c.pack.pack_len > CONN_MAX_BUFF_LEN {
 		panic(P_ERR_TOO_LARGE_PACKAGE)
@@ -411,7 +414,7 @@ func (c *connect) read_in_package() {
 
 
 /************ to find out "how much bytes need to represent a number" , or "what number is represented by given bytes" *************/
-func bytes2num_x_8(buff []byte, fix_len uint4) uint64, int{
+func bytes2num_x_8(buff []byte, fix_len uint8) (uint64, int) {
 	if fix_len < 8 {
 		var tmp_buff [8]byte
 
@@ -428,7 +431,7 @@ func bytes2num_x_8(buff []byte, fix_len uint4) uint64, int{
 	return 0, -1
 }
 
-func num2bytes_x_8(buff []byte, fix_len uint4, number uint64) bytes_len int {
+func num2bytes_x_8(buff []byte, fix_len uint8, number uint64) int {
 	max_len := 8
 	max_x := uint64(math.Pow(2, fix_len * 8 - 1) - 1)
 	max_8 := uint64(math.Pow(2, max_len * 8 - 1) -1)
@@ -448,23 +451,23 @@ func num2bytes_x_8(buff []byte, fix_len uint4, number uint64) bytes_len int {
 
 }
 
-func bytes2num_4_8(buff []byte) number uint64, bytes_len int{
+func bytes2num_4_8(buff []byte) (uint64, int){
 	return bytes2num_x_8(buff, 4)
 }
 
-func bytes2num_2_8(buff []byte) number uint64, bytes_len int{
+func bytes2num_2_8(buff []byte) (number uint64, bytes_len int){
 	return bytes2num_x_8(buff, 2)
 }
 
-func num2bytes_2_8(buff []byte, number uint64) bytes_len int {
+func num2bytes_2_8(buff []byte, number uint64) int {
 	return num2bytes_x_8(buff, 2)
 }
 
-func num2bytes_4_8(buff []byte, number uint64) bytes_len int {
+func num2bytes_4_8(buff []byte, number uint64) int {
 	return num2bytes_x_8(buff, 4)
 }
 
-func uint64_to_receiver( number uint64 ) receiver uint64, receiver_type uint4 {
+func uint64_to_receiver( number uint64 ) (uint64, uint8) {
 	if number & 1 {
 		return RECV_TYPE_USER, number >> 1
 	} else {
@@ -472,7 +475,7 @@ func uint64_to_receiver( number uint64 ) receiver uint64, receiver_type uint4 {
 	}
 }
 
-func receiver_to_uint64( receiver uint64, receiver_type uint4 ) uint64 number {
+func receiver_to_uint64( receiver uint64, receiver_type uint8 ) uint64 {
 	receiver <<= 1
 	switch receiver_type {
 	case RECV_TYPE_USER :
