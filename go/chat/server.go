@@ -26,7 +26,7 @@ type server struct {
  on_other_line	map[uint64]string	// clients on other proxy servers, [userid] => server_name
 
  peer_servers_http	map[string]*http	// [server_name] => *http
- peer_servers_message	map[string]*connect	// [server_name] => *connect,  proxy server message channel
+ peers	map[string]*connect	// [server_name] => *connect,  proxy server message channel
  peer_servers	map[string]string	//[server_name] => "host:port"
 
  message_channel_on	bool
@@ -47,10 +47,14 @@ type server struct {
 }
 
 func (s *server) log_error(err interface{}) {
-	s.log(s.error_log, err)
+	if err != nil {
+		s.log(s.error_log, err)
+	}
 }
 func (s *server) log_info(err interface{}) {
-	s.log(s.info_log, err)
+	if err != nil {
+		s.log(s.info_log, err)
+	}
 }
 
 func (s *server) log(file_path string, err interface{} ) {
@@ -95,15 +99,19 @@ func (s *server) handle_tcp_sock(c *net.Conn) {
 		s.log_error(err)
 	}()
 
-	var buff [4]byte
-	_, err = stream.Read(buff[0:])
+	var buff [6]byte
+	read, err = stream.Read(buff[0:])
 	if err != nil {
+		s.log_error("read package header:" + err.Error())
 		return
 	}
 
-	stream.push_back(buff[0:])
-	switch string(buff) {
-	case "CHAT" :
+	stream.push_back(buff[0:read])
+
+	/* handle message socket */
+	chat_reg := regexp.Compile("^.*CHAT$")
+	chat_found := chat_reg.Find(buff)
+	if chat_found != nil {
 		if ! s.message_channel_on {
 			s.log_error("message channel closed")
 			return
@@ -118,45 +126,142 @@ func (s *server) handle_tcp_sock(c *net.Conn) {
 				break;
 			}
 		}
+		return
 
-	case "POST" :
-	case "GET " :
-		if ! s.http_channel_on {
-			s.log_error("http channel closed")
+	}
+
+	/* find out wrong protocol received */
+	get_reg := regexp.Compile("^GET\\s.*$")
+	get_found := get_reg.Find(buff)
+	if get_found == nil {
+
+		post_reg := regexp.Compile("^POST\\s.*$")
+		post_found := post_reg.Find(buff)
+
+		if post_found == nil {
+			s.log_error("wrong protocol received")
 			return
 		}
-		conn := new http(stream)
-		for {
-			request := conn.read_request()
-			resp := s.handle_http_request(request, conn)
-			if resp == nil {
-				break;
+	}
+
+	/* handle http socket */
+	if ! s.http_channel_on {
+		s.log_error("http channel closed")
+		return
+	}
+	conn := new http(stream)
+	for {
+		request := conn.read_request()
+		resp := s.handle_http_request(request, conn)
+		if resp == nil {
+			/* to close this socket */
+			break;
+		}
+		conn.write_response(resp)
+	}
+
+
+}
+
+func (s *server) send_cmd_to_proxy( server_name string, c *cmd ) error {
+	proxy, e := s.peers[ server_name ]
+	if e {
+		proxy.write_cmd(cmd)
+		return nil
+	}
+	return errors.New("no proxy found:" + server_name)
+}
+
+func (s *server) send_group_message_to_user(cmd *command) {
+	members, exist := s.groups[cmd.receiver]
+	if exist {
+		for uid, _ := range s.groups[cmd.receiver] {
+			user, e := s.online[uid]
+			if e {
+				user.write_cmd(cmd)
+			} else {
+				s.log_error("group member not exist:" + strconv.FormatUint(uid))
 			}
-			conn.write_response(resp)
+		}
+	}
+}
+
+func (s *server) send_group_message_to_proxy(cmd *command) {
+	proxy_groups, e := s.on_other_groups[cmd.receiver]
+	if e {
+		for proxy_server_name, _ := range proxy_groups {
+			err := s.send_cmd_to_proxy(proxy_server_name, cmd)
+			if err != nil {
+				s.log_error(err)
+			}
+		}
+	}
+}
+
+func (s *server) send_user_message_to_user(cmd *command) {
+	/* send to client */
+	user, exist := s.online[cmd.receiver]
+	if exist {
+		err := s.online[cmd.receiver].write_cmd(cmd)
+		if err != nil {
+			s.log_error(err)
 		}
 
-	default:
-		s.log_error("wrong protocol")
+	} else {
+		s.log_error("user not found:" + strconv.FormatUint(cmd.receiver, 10))
+	}
+}
+
+func (s *server) send_user_message_to_proxy(cmd *command) {
+	user_proxy_server_name, proxy_exist := s.on_other_line[cmd.receiver]
+	if !proxy_exist {
+		s.log_error("user's proxy not found:" + strconv.FormatUint(cmd.receiver, 10))
 		return
 	}
 
+	/* send message to proxy */
+	err := s.send_cmd_to_proxy(user_proxy_server_name, cmd)
+	if err != nil {
+		s.log_error(err)
+	}
 }
+
 
 func (s *server) handle_message_command(cmd *command, c *connect) int {
 	succ := 0
 
 	switch cmd.(type) {
 	case pk_proxy_login :
-		s.peer_server_message[cmd.server_name] = c
+		s.peers[cmd.server_name] = c
 
 	case pk_user_login :
 		s.online[c.userid] = c
 		s.notify_peer_servers("/user/login?uid=" + strconv.FormatUint(c.userid, 10) + "&server=" + s.server_name)
 
+
 	case v1_pk_data :
-		for _,proxy := range s.peer_server_message {
-			proxy.write_cmd(cmd)
+		switch cmd.receiver_type {
+
+		case RECV_TYPE_USER :
+			switch c.login.(type) {
+			case *pk_proxy_login:
+				s.send_user_message_to_proxy(cmd)
+
+			case *pk_user_login:
+				s.send_user_message_to_user(cmd)
+			}
+
+		case RECV_TYPE_GROUP :
+			switch c.login.(type) {
+			case *pk_proxy_login:
+				s.send_group_message_to_proxy(cmd)
+
+			case *pk_user_login:
+				s.send_group_message_to_user(cmd)
+			}
+
 		}
+
 
 	case v1_pk_heartbeat :
 		log_debug("heart beat:", cmd.userid)
@@ -167,7 +272,7 @@ func (s *server) handle_message_command(cmd *command, c *connect) int {
 		succ = -1
 
 	case pk_proxy_logout :
-		delete(s.peer_server_message, c.login.server_name)
+		delete(s.peers, c.login.server_name)
 		log_info("logout:", c.login.server_name)
 		succ = -1
 
@@ -186,6 +291,7 @@ func (s *sever) handle_http_request(req *http_request, h *http) resp string {
 		server_name := req.params["name"]
 		delete(s.peer_servers, server_name)
 		delete(s.peer_servers_http, server_name)
+		resp = nil
 
 	case "/server/join":
 		server_name := req.params["name"]
@@ -256,6 +362,10 @@ func (s *sever) handle_http_request(req *http_request, h *http) resp string {
 			i ++
 		}
 
+	case "/halt" :
+	default :
+		resp = nil
+
 	}
 
 	return resp
@@ -276,25 +386,43 @@ func (s *server) notify_peer_servers(uri string) {
 
 /* run a server
 */
-func (s *server) Start() {
+func (s *server) Start() error {
 	s.online = make(map[uint64]*connect)
 	s.on_other_line = make(map[uint64]string)
 	s.peer_server_http = make(map[string]*http)
-	s.peer_server_message = make(map[string]*http)
+	s.peers = make(map[string]*http)
 	s.groups = make(map[uint64][uint64]uint4)
 	s.on_other_groups = make(map[uint64][string]string)
-	s.http_channel_on = false
-	s.message_channel_on = false
+
+
+	// test error_log and info_log
+	fd,err := os.OpenFile(s.error_log, O_CREATE|O_APPEND|O_RDWR, 0666)
+	if err != nil {
+		return errors.New("failed to open error_log:" + err.Error())
+	}
+	fd.Close()
+
+	fd,err = os.OpenFile(s.info_log, O_CREATE|O_APPEND|O_RDWR, 0666)
+	if err != nil {
+		return errors.New("failed to open info_log:" + err.Error())
+	}
+	fd.Close()
+
 
 	if s.peer_servers == nil {
 		s.peer_servers = make(map[string]string)
 	}
 
+	// before starting up port listener, we must set the two channels (message, http) closed first 
+	s.http_channel_on = false
+	s.message_channel_on = false
+
 	// start up listener
 	go s.start_up_listener()
+
 	s.http_channel_on = true
 
-	// connect to other peer servers
+	// connect to other peer servers on http channels 
 	for server_name,host_port := range s.peer_servers {
 		conn, err := net.Dial("tcp", host_port)
 		if err != nil {
@@ -304,6 +432,27 @@ func (s *server) Start() {
 		s.peer_servers_http[server_name] = create_http(stream)
 	}
 	s.notify_peer_servers("/server/join?name=" + s.server_name + "&host=" + s.host + "&port" + strconv.FormatUint(s.port, 10))
+
+	// connect to other peer servers on message channels
+	for server_name, host_port := range s.peer_servers {
+		conn, err := net.Dial("tcp", host_port)
+		if err != nil {
+			panic ("failed to join in peer servers:" + err.Error())
+		}
+		connect := create_connect(create_stream(conn))
+
+		login := new (pk_proxy_login)
+		login.server = s.server_name
+		login.pwd = "123456"
+
+		err = stream.write_cmd(login)
+		if err != nil {
+			s.log_error("failed to send command:" + err.Error())
+			continue
+		}
+		s.peers[server_name] = connect
+
+	}
 
 	// read all groups from other peers
 	for server_name,http := range s.peer_servers_http {
@@ -327,8 +476,8 @@ func (s *server) Start() {
 			}
 			for _,uid := range strings.Split(users, ",") {
 				if uid != "" {
-					userid, _ :=  strconv.ParseUint(uid, 10, 64) 
-					s.on_other_line[userid][ server_name ] = 1
+					userid, _ :=  strconv.ParseUint(uid, 10, 64)
+					s.on_other_line[userid] = server_name
 				}
 			}
 		}
@@ -337,146 +486,6 @@ func (s *server) Start() {
 	// open message port
 	s.message_channel_on = true
 
+	return nil
 }
 
-/* open a http port
-*/
-func (s *server) open_http_port() {
-	tcpAddr, _ := net.ResolveTCPAddr("tcp", s.host +":"+ strconv.FromatUint(s.http_port, 10))
-	listener, err := net.ListenTCP("tcp", tcpAddr)
-
-	if err != nil {
-		panic(P_ERR_LISTEN_HTTP_PORT)
-	}
-
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			s.log_error(err.Error())
-			continue
-		}
-
-		go s.handle_http_conn(conn)
-	}
-}
-
-/* open message port
-*/
-func (s *server) open_message_port() {
-	tcpAddr, _ := net.ResolveTCPAddr("tcp", s.host +":"+ strconv.FromatUint(s.port, 10))
-	listener, err := net.ListenTCP("tcp", tcpAddr)
-
-	if err != nil {
-		panic(P_ERR_LISTEN_PORT)
-	}
-
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			s.log_error(err.Error())
-			continue
-		}
-
-		go s.handle_message_conn(conn)
-	}
-}
-
-func (s *server) handle_message_conn(c *net.Conn) {
-	conn = CreateConn(c)
-
-	var login pk_login
-
-	conn.Login(&login)
-
-	switch login_pk.role {
-	case ROLE_CLIENT:
-		s.online[login.userid] = conn
-
-	case ROLE_PROXY:
-		s.peer_servers[login.server] = conn
-	}
-
-	switch login.version {
-	case "10":
-		for {
-			cmd := conn.ReadIn_V1()
-			conn.Handle(cmd, s)
-		}
-
-	case "20":
-
-	default:
-		fmt.Println("unsupport protocol version")
-	}
-}
-
-func (s *server) handle_http_conn(c *net.Conn) {
-	http = CreateHttp(c)
-
-	for {
-		cmd := http.read_in()
-		if cmd == nil {
-			http.end()
-			break;
-		}
-		response := cmd.handle(s)
-		http.write_out(response)
-	}
-}
-
-/* send package to proxy 
- */
-func (s *server) send_to_proxy(pk *pk_data, proxy string) {
-	conn, exist := s.peer_server[ proxy ]
-	if !exist {
-		panic(P_ERR_WRONG_RECEIVER_PROXY]
-	}
-	conn.Write(pk.orig_pack)
-}
-
-/* send package to user
- */
-func (s *server) send_to_user (pk *pk_data) {
-	conn, exist := s.online[ pk.receiver ]
-
-	if !exist {
-		proxy, p_exist := s.on_other_line[ pk.receiver ]
-		if !p_exist {
-			panic(P_ERR_WRONG_RECEIVER_UID)
-		}
-		s.send_to_proxy(pk, proxy)
-		return
-	}
-	conn.Write(pk.orig_pack)
-}
-
-/* send package to group 
- */
- func (s *server) send_to_group(pk *pk_data) {
-	 group, exist := s.groups[ pk.receiver ]
-	 if exist {
-		 for userid,_ := range group {
-			 conn, exist := s.online[ userid ]
-			 if !exist {
-				 fmt.Println("wrong receiver userid", userid)
-				 continue
-			 }
-
-			 conn.Write(pk.orig_pack)
-		 }
-	 }
-	 proxy, p_exist := s.on_other_group[ pk.receiver ]
-	 if p_exist {
-		for proxy,_ := range s.on_other_groups[ pk.receiver ] {
-			s.send_to_proxy(pk, proxy)
-		}
-	 }
-	 return
- }
-
-
-/* add a client 
-*/
-func (s *server) add_client(userid uint64, c *connect) {
-	s.online[ userid ] = c
-}

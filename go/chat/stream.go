@@ -12,6 +12,8 @@ type stream struct {
 func (r *stream) create_stream(c *net.Conn) {
 	r = new stream
 	r.buff_len = 0
+	r.sock = c
+	return r
 }
 
 func (r *stream) Read (buff []byte) int, error{

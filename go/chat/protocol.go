@@ -74,8 +74,8 @@ type connect struct {
 }
 
 type command interface {
-	init_from_buff(c *connect)
-	send_to_conn(c *connect)
+	init_from_buff(c *connect) error
+	send_to_conn(c *connect) error
 }
 
 /* create a new connect object to handle packages 
@@ -119,44 +119,46 @@ func (c *connect) read_cmd() command {
 /* send a command to peer
  *
  */
-func (c *connect) write_cmd (cmd command) {
-	cmd.send_to_conn(c)
+func (c *connect) write_cmd (cmd command) error {
+	return cmd.send_to_conn(c)
 }
 
 
 
 /*
 * user login package 
-*
+* [data_len (2bytes)] [protocol (4bytes)] [version (2bytes)] [role (1byte) = 1] [userid (4|8 bytes)] [token (32 bytes)]
 */
-const	ROLE_PROXY	=	0
-const	ROLE_USER	=	1
+const	ROLE_PROXY	=	"0"
+const	ROLE_USER	=	"1"
 
 type pk_user_login struct {
 	userid	uint64
 	token	string
 }
 
-func (p *pk_user_login) init_from_buff (c *connect) {
+func (p *pk_user_login) init_from_buff (c *connect) error {
 
 	i := 7
 	p.userid, bytes = bytes2num_4_8(c.pack.data[i : ])
 
 	i += bytes
 	p.token = string(c.pack.data[i : i+32]
+
+	return nil
 }
 
 func (p *pk_user_login) send_to_conn (c *connect) error {
-	var buff [51]byte	//[pack_len (2bytes)] [protocol (4bytes)] [version (2bytes)] [role (1byte)] [userid (4|8 bytes)] [token (32 bytes)]
+	var buff [64]byte
 	if len(p.token) > 32 {
-		return errors.New("wrong login token")
+		return errors.New("login token too long")
 	}
 
 	copy(buff[2 : 6], []byte("CHAT"))
 	i := 6
-	copy(buff[i:i+2], c.version)
+	copy(buff[i : i+2], c.version)
 	i += 2
-	copy(buff[i:i+1], ROLE_USER)
+	copy(buff[i : i+1], ROLE_USER)
 	i += 1
 	bytes := num2bytes_4_8(buff[i:], p.userid)
 	i += bytes
@@ -173,7 +175,7 @@ func (p *pk_user_login) send_to_conn (c *connect) error {
 
 /*
 * proxy login package
-*
+* [data_len (2bytes)] [protocol (4bytes) = "CHAT"] [version (2bytes)] [role (1byte) = 1] [userid (4|8 bytes)] [token (32 bytes)]
 */
 
 type pk_proxy_login struct {
@@ -181,15 +183,39 @@ type pk_proxy_login struct {
 	pwd		string
 }
 
-func (p *pk_proxy_login) init_from_buff(c *connect) {
-	p.server = string(c.pack.data[3 : 35])
-	p.pwd = string(c.pack.data[35 : 67])
+func trim_null_characters(bytes []byte) string {
+	strlen := len(bytes)
+	if strlen == 0 {
+		return ""
+	}
+
+	begin := 0
+	end := strlen
+	for i:=0 ; i < strlen && bytes[i] == 0; i++ {
+		begin ++
+	}
+	for j:=strlen - 1 ; j >= 0 && byte[j] == 0; j -- {
+		end --
+	}
+
+	return string(bytes[begin : end])
 }
 
-func (p *pk_proxy_login) send_to_conn(c *connect) {
-	var buff [128]byte	//[pack_len (2bytes)] [version (2bytes)] [role (1byte)] [server (32bytes)] [token (32 bytes)]
+
+func (p *pk_proxy_login) init_from_buff(c *connect) error {
+	i = 7
+	p.server = trim_null_characters(c.pack.data[i : i+32])
+
+	i += 32
+	p.pwd = trim_null_characters(c.pack.data[i : i+32])
+
+	return nil
+}
+
+func (p *pk_proxy_login) send_to_conn(c *connect) error {
+	var buff [128]byte	//[data_len (2bytes)] [version (2bytes)] [role (1byte)] [server (32bytes)] [token (32 bytes)]
 	if len(p.token) > 32 {
-		panic(P_ERR_TOKEN_TOO_LONG)
+		return errors.New("wrong proxy login token")
 	}
 
 	i := 2
@@ -205,6 +231,8 @@ func (p *pk_proxy_login) send_to_conn(c *connect) {
 
 	c.sock.Write(buff[0 : i])
 
+	return nil
+
 }
 
 
@@ -217,14 +245,19 @@ type v1_pk_heartbeat struct {
 	userid	uint64
 }
 
-func (p *v1_pk_heartbeat) init_from_buff(c *connect) {
+func (p *v1_pk_heartbeat) init_from_buff(c *connect) error {
 	p.userid = c.login.userid
+	return nil
 }
 
-func (p *v1_pk_heartbeat) send_to_conn(c *connect) {
+func (p *v1_pk_heartbeat) send_to_conn(c *connect) error {
 	var buff [32] byte
 	num2bytes_2_8(buff[0:], 0)
-	c.sock.Write(buff[0 : 2])
+	_, err := c.sock.Write(buff[0 : 2])
+	if err != nil {
+		return errors.New("heart beat:" + err.Error())
+	}
+	return nil
 }
 
 
@@ -257,21 +290,26 @@ func (p *v1_pk_data) init_pack(data []byte, receiver uint64, receiver_type uint4
 	packsize_len := num2bytes_2_8(tmp_buff, receiver_len + data_size)
 
 	p._orig_pack = make([]byte, packsize_len + receiver_len + data_size)
-
 	p.data = p._orig_pack[packsize_len + receiver_len : ]
 }
 
-func (p *v1_pk_data) init_from_buff(c *connect) {
+func (p *v1_pk_data) init_from_buff(c *connect) error {
 	receiver, num_bytes = bytes2num_4_8(c.pack.data[0 : ])
 	p.receiver, p.receiver_type = uint64_to_receiver(receiver)
 
 	p.data = c.pack.data[num_bytes : c.pack.data_len - num_bytes]
 
 	p._orig_pack = c.read_buff[0 : c.pack.pack_len]
+
+	return nil
 }
 
-func (p *v1_pk_data) send_to_conn(c *connect) {
-	c.sock.Write(p._orig_pack)
+func (p *v1_pk_data) send_to_conn(c *connect) error {
+	bytes, err := c.sock.Write(p._orig_pack)
+	if err != nil {
+		return errors.New("send data pack:" + err.Error())
+	}
+	return nil
 }
 
 
@@ -287,7 +325,7 @@ func (c *connect) fetch_cmd() command, error {
 		}
 
 		c.version = string(c.pack.data[4 : 6])	// login: version
-		c.role,_ = binary.Uvarint(c.pack.data[6 : 7])	//login: role
+		c.role,_ = string(c.pack.data[6 : 7])	//login: role
 
 		switch c.role {
 
@@ -373,23 +411,79 @@ func (c *connect) read_in_package() {
 
 
 /************ to find out "how much bytes need to represent a number" , or "what number is represented by given bytes" *************/
+func bytes2num_x_8(buff []byte, fix_len uint4) uint64, int{
+	if fix_len < 8 {
+		var tmp_buff [8]byte
+
+		if buff[0] & 128 {	//10000000, frist bit is '1', then this num is represent by 8 bytes
+			copy(tmp_buff[0:8], buff[0:8])
+			tmp_buff[0] &= 127	// set the first bit as 0
+			return binary.Varuint(tmp_buff[0:8]), 8
+
+		} else {	//00000000, frist bit is '0', then this num is represent by 4 bytes
+			copy(tmp_buff[0:fix_len], buff[0:fix_len])
+			return binary.Varuint(tmp_buff[0:fix_len]), fix_len
+		}
+	}
+	return 0, -1
+}
+
+func num2bytes_x_8(buff []byte, fix_len uint4, number uint64) bytes_len int {
+	max_len := 8
+	max_x := uint64(math.Pow(2, fix_len * 8 - 1) - 1)
+	max_8 := uint64(math.Pow(2, max_len * 8 - 1) -1)
+	if number <= max_x {
+		/* fix_len bytes */
+		binary.PutUvarint(buff, number)
+		return fix_len
+
+	} else if number <= max_8 {
+		binary.PutUvarint(buff, number)
+		buff[0] |= 128	//10000000, first bit should be '1'
+		return max_len
+
+	} else {
+		return -1	//error 
+	}
+
+}
 
 func bytes2num_4_8(buff []byte) number uint64, bytes_len int{
+	return bytes2num_x_8(buff, 4)
 }
 
 func bytes2num_2_8(buff []byte) number uint64, bytes_len int{
+	return bytes2num_x_8(buff, 2)
 }
 
 func num2bytes_2_8(buff []byte, number uint64) bytes_len int {
+	return num2bytes_x_8(buff, 2)
 }
 
 func num2bytes_4_8(buff []byte, number uint64) bytes_len int {
+	return num2bytes_x_8(buff, 4)
 }
 
 func uint64_to_receiver( number uint64 ) receiver uint64, receiver_type uint4 {
+	if number & 1 {
+		return RECV_TYPE_USER, number >> 1
+	} else {
+		return RECV_TYPE_GROUP, number >> 1
+	}
 }
 
 func receiver_to_uint64( receiver uint64, receiver_type uint4 ) uint64 number {
+	receiver <<= 1
+	switch receiver_type {
+	case RECV_TYPE_USER :
+		return receiver | 1
+
+	case RECV_TYPE_GROUP :
+		return receiver
+
+	default:
+		return 0
+	}
 }
 
 /*************************************************************************************************************************************/

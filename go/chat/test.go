@@ -2,10 +2,7 @@ package main
 import "fmt"
 import "regexp"
 import "strings"
-
-type a struct {
-	m map[string]string
-}
+import	"math"
 
 func main() {
 	tmp := "HTTP/1.1 OK\r\n"
@@ -40,11 +37,23 @@ func main() {
 	}
 	fmt.Println(params)
 
-	a := new (a)
-	if a.m == nil {
-		fmt.Println("nil found")
-	}
+	var buff [4]byte
+	buff[0] = 'a'
+	buff[1] = 'b'
+	buff[2] = 'c'
+	buff[3] = 'd'
+	newstr := string(buff[0:2])
+	buff[0] = 'e'
+	fmt.Println(string(buff[:]), newstr)
 
+	var (
+		a uint64
+		b uint64
+	)
+	a = uint64(math.Pow(2,63))
+	b = uint64(math.Pow(2,63)) - 1
+
+	fmt.Println(a, b, a + b)
 
 }
 
