@@ -283,7 +283,7 @@ func (ne *net_event_driver) CleanPackEof (fd uint32) error {
 func (ne *net_event_driver) Send (fd uint32, pack []byte) (int, error) {
 	conn,exist := ne.conns[fd]
 	if !exist {
-		ne.log_error(ERR_BAD_FD, strconv.FormatUint(uint64(fd), 10))
+		ne.log_error(ERR_BAD_FD, "Send", strconv.FormatUint(uint64(fd), 10))
 		return 0, errors.New(ERR_BAD_FD)
 	}
 	if conn.state == CONN_RUNNING {
@@ -300,7 +300,7 @@ func (ne *net_event_driver) Send (fd uint32, pack []byte) (int, error) {
 func (ne *net_event_driver) Close (fd uint32) error {
 	conn, exist := ne.conns[fd]
 	if !exist {
-		ne.log_error(ERR_BAD_FD, strconv.FormatUint(uint64(fd), 10))
+		ne.log_error(ERR_BAD_FD, "Close", strconv.FormatUint(uint64(fd), 10))
 		return errors.New(ERR_BAD_FD)
 	}
 	conn.state= CONN_CLOSED
@@ -315,7 +315,7 @@ func (ne *net_event_driver) Close (fd uint32) error {
 func (ne *net_event_driver) ShutDown (fd uint32) error {
 	conn,exist := ne.conns[fd]
 	if !exist {
-		ne.log_error(ERR_BAD_FD, strconv.FormatUint(uint64(fd), 10))
+		ne.log_error(ERR_BAD_FD, "ShutDown", strconv.FormatUint(uint64(fd), 10))
 		return errors.New(ERR_BAD_FD)
 	}
 	conn.is_shutdown = true
@@ -333,7 +333,7 @@ func (ne *net_event_driver) ShutDown (fd uint32) error {
 func (ne *net_event_driver) ShutUp (fd uint32) error {
 	conn,exist := ne.conns[fd]
 	if ; !exist {
-		ne.log_error(ERR_BAD_FD, strconv.FormatUint(uint64(fd), 10))
+		ne.log_error(ERR_BAD_FD, "ShutUp", strconv.FormatUint(uint64(fd), 10))
 		return errors.New(ERR_BAD_FD)
 	}
 	conn.is_shutup = true
@@ -489,7 +489,7 @@ func (ne *net_event_driver) new_sock_fd() (uint32, error) {
 func (ne *net_event_driver) conn_read_data(fd uint32) {
 	conn, exist := ne.conns[fd]
 	if !exist {
-		ne.log_error(ERR_BAD_FD)
+		ne.log_error(ERR_BAD_FD, "conn_read_data")
 		return
 	}
 	var (
@@ -510,6 +510,7 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 	// 读取一段数据
 	bytes, err = conn.sock.Read(conn.buff[head : ])
 	tail = head + bytes
+
 
 	if bytes > 0 {
 		if conn.pack_eof_num == 0 {
@@ -536,7 +537,7 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 						if perror == nil {
 
 							//校验自定义包规则的返回值是否正确
-							if phead > 0 && plen > 0 && (phead + plen) <= (tail - head) {
+							if phead >= 0 && plen > 0 && (phead + plen) <= (tail - head) {
 								phead += head
 								break;
 
@@ -588,13 +589,15 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 
 
 	//客户端关闭了连接 
-	if err == io.EOF {
+	if err != nil {
 		/* do nothing */
-	//网络连接异常
-	} else if err != nil {
-		ne.log_error(err.Error())
+		ne.Close(fd)
+
+		//网络连接异常
+		if err != io.EOF {
+			ne.log_error(err.Error())
+		}
 	}
-	ne.Close(fd)
 
 }
 
@@ -667,7 +670,7 @@ func (ne *net_event_driver) handle_conn(new_fd uint32) {
 					 ne.log_error(res.Error())
 				 }
 			 }
-			 break;
+			 return
 
 		 default:
 			 ne.log_error("wrong state", "handle_conn", strconv.FormatUint(uint64(new_fd), 10), strconv.FormatUint(uint64(new_c.state), 10))
