@@ -3,7 +3,8 @@ import	"./netevent"
 import	"fmt"
 
 func main() {
-	ne := netevent.Init("127.0.0.1:8888")
+	ne := netevent.Init()
+	ne.ConnBuffSize = 16
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect connect:", fd)
 		ne.SetPackEof(fd, &netevent.PackEofTest{})
@@ -20,7 +21,7 @@ func main() {
 		return nil
 	}
 
-	ne.Start()
+	ne.Listen("127.0.0.1:8888")
 
 
 }

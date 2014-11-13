@@ -87,7 +87,7 @@ type net_event_driver struct{
 
 	是否开启dbeug模式
 
-	默认为 true 
+	默认为 false 
 	*/
 	Debug		bool
 
@@ -140,6 +140,9 @@ const	CONN_CLOSED = 2
 type connect struct {
 	sock	net.Conn
 	buff	[]byte
+	buff_len	int
+	buff_size	int
+	pack_head	int
 
 	is_shutup	bool
 	is_shutdown	bool
@@ -152,20 +155,20 @@ type connect struct {
 }
 
 
+
 const CFG_MAX_CONN_NUM = 65535
 
 /* 生成一个 event driver, 绑定在指定端口上
  *
  * @param	host_port, ip和端口用":"隔开, 格式:"*:8888"
  */
-func Init (host_port string) *net_event_driver {
+func Init () *net_event_driver {
 	ne := new(net_event_driver)
 
-	ne.host_port = host_port
 	ne.MaxConnNum = CFG_MAX_CONN_NUM
 	ne.conns = make(map[uint32]*connect, ne.MaxConnNum)
 	ne.ConnBuffSize = 8 * 1024
-	ne.Debug = true
+	ne.Debug = false
 	ne.DebugLog = ""
 	ne.ErrorLog = ""
 	ne.IdleTime = 0
@@ -179,14 +182,17 @@ func Init (host_port string) *net_event_driver {
 }
 
 
+const ERR_BAD_PACKAGE = "bad package"
 const ERR_BAD_FD = "bad fd"
 const ERR_CONN_BAD_STATE = "connect bad state"
 
 
-/* 启动 event driver 
+/* 监听端口
  *
  */
-func (ne *net_event_driver) Start() error {
+func (ne *net_event_driver) Listen (host_port string) error {
+	ne.host_port = host_port
+
 	//如果最大连接数被用户设置过，则需要重新申请连接池内存
 	if ne.MaxConnNum != CFG_MAX_CONN_NUM {
 		ne.conns = make(map[uint32]*connect, ne.MaxConnNum)
@@ -213,9 +219,7 @@ func (ne *net_event_driver) Start() error {
 		}
 
 		// 开启线程处理该链接
-		ne.log_debug(1, "here")
 		new_fd, err := ne.new_conn(conn)
-		ne.log_debug(1, "here")
 		if err != nil {
 			//添加新连接失败
 			ne.log_error(err.Error(), "Start")
@@ -300,7 +304,7 @@ func (ne *net_event_driver) Send (fd uint32, pack []byte) (int, error) {
 func (ne *net_event_driver) Close (fd uint32) error {
 	conn, exist := ne.conns[fd]
 	if !exist {
-		ne.log_error(ERR_BAD_FD, "Close", strconv.FormatUint(uint64(fd), 10))
+		//ne.log_error(ERR_BAD_FD, "Close", strconv.FormatUint(uint64(fd), 10))
 		return errors.New(ERR_BAD_FD)
 	}
 	conn.state= CONN_CLOSED
@@ -367,6 +371,30 @@ func (ne *net_event_driver) Connect (host_port string) (uint32, error) {
 }
 
 
+/* 发起一个连接, 监听并处理数据包，直到连接被断开
+ *
+ * @param	host_port, ip和端口用":"隔开，格式:"127.0.0.1:8888"
+ */
+func (ne *net_event_driver) Dial (host_port string) (uint32,error) {
+	conn, err := net.Dial("tcp", host_port)
+	if err != nil {
+		ne.log_error(err.Error(), "Connect")
+		return 0, err
+	}
+
+	// 开启线程处理该链接
+	new_fd, new_err := ne.new_conn(conn)
+	if new_err != nil {
+		//添加新连接失败
+		return 0, new_err
+	}
+
+	ne.handle_conn(new_fd)
+
+	return new_fd, nil
+}
+
+
 
 
 /* 记录错误日志，如果记录失败，错误信息将连同失败原因一起输出到stderr
@@ -412,6 +440,10 @@ func (ne *net_event_driver) log_error (msg ... string) {
  * debug日志的格式固定为：CHAT|2014-11-01 11:11:11|DEBUG|$fd|(recv|conn|close)|(read_bytes:$read_bytes)|(pack_bytes:$pack_bytes)
  */
 func (ne *net_event_driver) log_debug (fd uint32, tag string, msg ... string) {
+	if !ne.Debug {
+		return
+	}
+
 	now := time.Now()
 	line := "CHAT|" + now.Format("2006-01-02 15:04:05") + "|DEBUG|" + strconv.FormatUint(uint64(fd), 10) + "|" +tag + "|" + strings.Join(msg, "|")
 
@@ -492,105 +524,69 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 		ne.log_error(ERR_BAD_FD, "conn_read_data")
 		return
 	}
-	var (
-		phead	int
-		plen	int
-		perror	error
-		err	error
-		res	error
-		pack	[]byte
 
-		head	int = 0
-		tail	int
-		r	int
-		bytes	int
-		i		uint8
+	var (
+		err	error	=	nil
+		phead	int		=	0	//package head
+		buff_len	int	=	0	//buff length
+		read_len	int
+		plen	int		=	0	//package length
 	)
 
-	// 读取一段数据
-	bytes, err = conn.sock.Read(conn.buff[head : ])
-	tail = head + bytes
+	// 从socket中读取数据
+	buff_len = conn.buff_len
+	phead = conn.pack_head
+	read_len, err = conn.sock.Read(conn.buff[buff_len : ])
+	ne.log_debug(fd, "read", "-----read:", strconv.FormatUint(uint64(read_len), 10), ",h:", strconv.FormatUint(uint64(buff_len), 10), "buff_size:", strconv.FormatUint(uint64(conn.buff_size), 10))
+	buff_len += read_len
 
+	// 如果没有自动分包规则，直接将数据传递给OnRecv
+	if conn.pack_eof_num == 0 {
+		plen = buff_len - phead
 
-	if bytes > 0 {
-		if conn.pack_eof_num == 0 {
-			pack = conn.buff[head : tail]
-			head = 0
-			if ne.OnRecv != nil {
-				if res = ne.OnRecv(fd, pack); res != nil {
-					ne.log_error(res.Error())
-				}
+		ne.OnRecv(fd, conn.buff[phead : phead + plen])
+		phead += plen
+
+	// 如果有自动分包规则，过滤分包规则并传递给OnRecv
+	} else {
+
+		for {
+			plen = conn.fetch_package(conn.buff[phead : buff_len])
+			if plen < 0 || phead + plen > buff_len {
+				break
 			}
-
-		} else {
-			head = 0	//rewind
-
-			for head < tail {
-
-				perror = errors.New(ERR_PACK_NOT_FOUND)
-				// 自动分包将返回第一个数据包的 begin下标 和 长度 len
-				for i = 0 ; i < conn.pack_eof_num; i ++ {
-					peof := conn.pack_eof[i]
-					if peof != nil {
-						phead, plen, perror = peof.fetch(conn.buff[head : tail])
-						//这里返回的phead是相对于 buff[head : tail]的下标，需要转换为相对于 buff[0 : ] 的下标
-						if perror == nil {
-
-							//校验自定义包规则的返回值是否正确
-							if phead >= 0 && plen > 0 && (phead + plen) <= (tail - head) {
-								phead += head
-								break;
-
-							} else {
-								ne.log_error(ERR_ILLEAGLE_PACK_EOF)
-								perror = errors.New(ERR_ILLEAGLE_PACK_EOF)
-							}
-						}
-					}
-				}
-
-				if perror == nil {	//解析到数据包
-
-					//包的位置在 head[] 下标处
-					if phead == head {
-						pack = conn.buff[head : head + plen]
-						head += plen
-
-					} else {
-						pack = conn.buff[head : phead]
-						head = phead
-					}
-
-				} else {	//整个buff中都未找到package
-					if head == 0 {
-						pack = conn.buff[head : tail]
-						head = tail
-
-					} else {
-						pack = nil
-						r = tail - head
-						//另存剩余的数据
-						copy(conn.buff[0 : r], conn.buff[head : tail])
-						head = r
-
-						break;
-					}
-				}
-
-				if ne.OnRecv != nil {
-					if res = ne.OnRecv(fd, pack); res != nil {
-						ne.log_error(res.Error())
-					}
-				}
-
-			}
+			ne.OnRecv(fd, conn.buff[phead : phead + plen])
+			ne.log_debug(fd, "read", "-----phead:", strconv.FormatUint(uint64(phead), 10), ",plen:", strconv.FormatUint(uint64(plen), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
+			phead += plen
 		}
 	}
 
+	ne.log_debug(fd, "read", "-----end phead:", strconv.FormatUint(uint64(phead), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
+
+
+	if buff_len >= conn.buff_size {
+		if phead == 0 {
+			//当buff已满，仍未找到数据包的情况下，该buff内数据被丢弃，连接将被关闭
+			ne.Close(fd)
+			ne.log_error(ERR_BAD_PACKAGE, strconv.FormatUint(uint64(fd), 10), "buffsize:" + strconv.FormatUint(uint64(conn.buff_size), 10), "plen:"+strconv.FormatInt(int64(plen), 10))
+
+		} else {
+			if phead < buff_len {
+				copy(conn.buff[0 : buff_len - phead], conn.buff[ phead : buff_len ])
+			}
+			buff_len -= phead
+			phead = 0
+		}
+	}
+
+	ne.log_debug(fd, "read", "-----final phead:", strconv.FormatUint(uint64(phead), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
+
+	conn.pack_head = phead
+	conn.buff_len = buff_len
 
 	//客户端关闭了连接 
 	if err != nil {
-		/* do nothing */
+
 		ne.Close(fd)
 
 		//网络连接异常
@@ -614,6 +610,9 @@ func (ne *net_event_driver) new_conn (conn net.Conn) (uint32, error) {
 
 	new_conn := &connect { sock: conn }
 	new_conn.buff = make([]byte, ne.ConnBuffSize)
+	new_conn.buff_len = 0
+	new_conn.buff_size = ne.ConnBuffSize
+	new_conn.pack_head = 0
 	new_conn.last_op_time = time.Now().Unix()
 	new_conn.pack_eof_num = 0
 	new_conn.state = CONN_RUNNING
@@ -689,18 +688,37 @@ func (ne *net_event_driver) handle_conn(new_fd uint32) {
  }
 
 
+/* fetch package from buffer
+ *
+ * @return	package_lentgh, int
+ */
+func (c *connect) fetch_package (buff []byte) int {
+	var plen int
+	for _,peof := range c.pack_eof {
+		if peof != nil {
+			plen = peof.fetch(buff)
+			if plen > 0 {
+				return plen
+			}
+		}
+	}
+	return -1
+}
+
+
+
 /**************************** 自动分包 ***********************************/
 
 /* 自动分包规则
  *
- * 从字节流中的[0]位开始,根据规则依次搜索到包头,包尾,然后返回包头, 包尾的下标[begin], 和包的长度 length
- * 如果字节流中没有符合该包规则的数据段，返回"包未找到"的错误( error(netevent.ERR_PACK_NOT_FOUND) )
+ * 从字节流中的[0]位开始,根据规则搜索包，如果数据包未找到，返回 -1, 否则返回数据包长度 len
  *
+ *	fetch (stream []byte) (len int)
  */
 const	ERR_PACK_NOT_FOUND	=	"package not found"
 const	ERR_ILLEAGLE_PACK_EOF = "illeagle pack eof"
 type i_net_pack_eof interface {
-	fetch (stream []byte) (int, int, error)
+	fetch (stream []byte) int
 }
 
 
@@ -710,8 +728,8 @@ type i_net_pack_eof interface {
 type PackEofTail struct {
 	Eof	string	//分隔符
 }
-func (pe *PackEofTail) fetch (stream []byte) (int, int, error) {
-	return 0, 0, nil
+func (pe *PackEofTail) fetch (stream []byte) int {
+	return 1
 }
 
 
@@ -738,6 +756,7 @@ type PackEofHttpGet struct {
 
 type PackEofTest struct {
 }
-func (pe *PackEofTest) fetch (stream []byte) (int, int, error) {
-	return 0, 4, nil
+
+func (pe *PackEofTest) fetch (stream []byte) int {
+	return	 8
 }
