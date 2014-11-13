@@ -9,7 +9,7 @@ func main() {
 
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect connect:", fd)
-		ne.Send(fd, []byte("abcdefghabcdef"))
+		ne.Send(fd, []byte("1234567890"))
 		return nil
 	}
 

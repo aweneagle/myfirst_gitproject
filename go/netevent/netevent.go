@@ -35,6 +35,7 @@ import	"time"
 import	"os"
 import	"errors"
 import	"io"
+import	"bytes"
 
 type net_event_driver struct{
 
@@ -573,6 +574,7 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 		} else {
 			if phead < buff_len {
 				copy(conn.buff[0 : buff_len - phead], conn.buff[ phead : buff_len ])
+				ne.log_debug(fd, "read", "[=============]COPY:", strconv.FormatUint(uint64(buff_len - phead), 10))
 			}
 			buff_len -= phead
 			phead = 0
@@ -729,7 +731,19 @@ type PackEofTail struct {
 	Eof	string	//分隔符
 }
 func (pe *PackEofTail) fetch (stream []byte) int {
-	return 1
+	var (
+		e	[]byte
+		elen	int
+		index	int
+	)
+	e = []byte(pe.Eof)
+	elen = len(e)
+	index = bytes.Index(stream, e)
+	if index  == -1 {
+		return -1
+	} else {
+		return index + elen
+	}
 }
 
 
@@ -740,23 +754,76 @@ type PackEofHeadTail struct {
 	HeadEof	string	//首部分隔符
 	TailEof	string	//尾部分隔符
 }
+func (pe *PackEofHeadTail) fetch (stream []byte) int {
+	var (
+		tail	[]byte
+		tail_pos	int
+		head_len	int
+		tail_len	int
+		stream_len	int
+	)
+	head_len = len(pe.HeadEof)
+	tail_len = len(pe.TailEof)
+	stream_len = len(stream)
+
+	if stream_len < head_len + tail_len {
+		return -1
+	}
+
+	//match the head
+	if bytes.Compare(stream[0:head_len], []byte(pe.HeadEof)) != 0 {
+		return -1
+	}
+
+	if tail_len == 0 {
+		return stream_len
+
+	} else {
+		tail = []byte(pe.TailEof)
+		tail_pos = bytes.Index(stream, tail)
+
+		if tail_pos == -1 {
+			return -1
+		} else {
+			return tail_pos + len(tail)
+		}
+	}
+
+}
 
 
 /* 自动分包规则：HTTP post 包
  */
 type PackEofHttpPost struct {
+	rule	PackEofHeadTail
+}
+func (pe *PackEofHttpPost) fetch (stream []byte) int {
+	pe.rule.HeadEof = "POST"
+	pe.rule.TailEof = ""
+	return pe.rule.fetch(stream)
 }
 
 
 /* 自动分包规则: HTTP get 包
  */
 type PackEofHttpGet struct {
+	rule	PackEofHeadTail
+}
+func (pe *PackEofHttpGet) fetch (stream []byte) int {
+	pe.rule.HeadEof = "GET"
+	pe.rule.TailEof = "\r\n\r\n"
+	return pe.rule.fetch(stream)
 }
 
 
-type PackEofTest struct {
+/* 自动分包规则: CHAT 登陆包
+ */
+type PackEofChat struct {
+	rule	PackEofHeadTail
+}
+func (pe *PackEofChat) fetch (stream []byte) int {
+	pe.rule.HeadEof = "CHAT"
+	pe.rule.TailEof = "\r\n\r\n"
+	return pe.rule.fetch(stream)
 }
 
-func (pe *PackEofTest) fetch (stream []byte) int {
-	return	 8
-}

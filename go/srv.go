@@ -4,10 +4,11 @@ import	"fmt"
 
 func main() {
 	ne := netevent.Init()
-	ne.ConnBuffSize = 16
+	ne.ConnBuffSize = 256
+	ne.Debug = true;
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect connect:", fd)
-		ne.SetPackEof(fd, &netevent.PackEofTest{})
+		ne.SetPackEof(fd, &netevent.PackEofHttpGet{}, &netevent.PackEofHttpPost{})
 		return nil
 	}
 	ne.OnClose = func(fd uint32) error {
