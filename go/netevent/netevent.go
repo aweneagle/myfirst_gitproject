@@ -36,6 +36,7 @@ import	"os"
 import	"errors"
 import	"io"
 import	"bytes"
+import	"fmt"
 
 type net_event_driver struct{
 
@@ -153,6 +154,24 @@ type connect struct {
 	last_op_time	int64	//上一次操作时间(send or recv)
 
 	state	uint8	//connect state:  ST_CONN_INI, ST_CONN_RUNNING, ST_CONN_TO_CLOSE
+
+
+	//(下面所说的"线程”指的是"goroutine")
+	//每次只处理一个线程回调
+	thr_lock	chan	bool
+
+	//同步请求数据
+	thr_callback	*thr_send_data
+
+
+}
+
+//跨线程请求数据
+type	thr_send_data struct {
+	send	[]byte
+	recv	[]byte
+	recv_len	int
+	callback	func( err error )
 }
 
 
@@ -277,6 +296,44 @@ func (ne *net_event_driver) CleanPackEof (fd uint32) error {
 		conn.pack_eof[i] = nil
 	}
 	return nil
+}
+
+
+
+/* 发送一个数据包到一个连接，并等待返回数据，期间OnRecv函数不会被回调
+ *
+ * @param	fd
+ * @param	pack
+ * @return	length int, 返回的数据包长度
+ */
+func (ne *net_event_driver) Request (fd uint32, request []byte, response []byte) (int, error) {
+	var (
+		e	error
+	)
+
+	conn, exist := ne.conns[fd]
+	if !exist {
+		ne.log_error(ERR_BAD_FD, "Request", strconv.FormatUint(uint64(fd), 10))
+		return 0, errors.New(ERR_BAD_FD)
+	}
+
+	cb := thr_send_data { send: request, recv: response }
+
+	wait := make(chan bool, 1)
+
+	cb.callback = func (err error) {
+		//收到回调通知
+		e = err
+		wait <- true
+	}
+
+	//注册监听接口
+	conn.thr_send(&cb)
+
+	//等待通知
+	_ = <-wait
+
+	return cb.recv_len, e
 }
 
 
@@ -538,6 +595,7 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 	buff_len = conn.buff_len
 	phead = conn.pack_head
 	read_len, err = conn.sock.Read(conn.buff[buff_len : ])
+
 	ne.log_debug(fd, "read", "-----read:", strconv.FormatUint(uint64(read_len), 10), ",h:", strconv.FormatUint(uint64(buff_len), 10), "buff_size:", strconv.FormatUint(uint64(conn.buff_size), 10))
 	buff_len += read_len
 
@@ -611,6 +669,8 @@ func (ne *net_event_driver) new_conn (conn net.Conn) (uint32, error) {
 	}
 
 	new_conn := &connect { sock: conn }
+	new_conn.thr_callback = nil
+	new_conn.thr_lock = make(chan bool, 1)
 	new_conn.buff = make([]byte, ne.ConnBuffSize)
 	new_conn.buff_len = 0
 	new_conn.buff_size = ne.ConnBuffSize
@@ -642,6 +702,16 @@ func (ne *net_event_driver) clean_conn (fd uint32) error {
 	return nil
 }
 
+/* 
+ * 线程接受来自其他connect线程的回调接口
+ */
+func (c *connect) thr_send (callback *thr_send_data) {
+	c.thr_lock <- true
+	c.thr_callback = callback
+}
+
+const	ERR_THR_SEND_DATA	=	"thr send data error"
+
 
 /* 
  * 处理连接
@@ -654,36 +724,68 @@ func (ne *net_event_driver) handle_conn(new_fd uint32) {
 	 new_c := ne.conns[new_fd]
 	 conn := new_c.sock
 	 for {
-		 switch new_c.state {
 
-		 case CONN_RUNNING:
-			 if ! new_c.is_shutdown {
-				 ne.conn_read_data(new_fd)
+		 //接受其他线程的交互请求
+		 if new_c.thr_callback != nil {
+
+			 cb := new_c.thr_callback
+			 cb.recv_len = 0
+
+			 _, err = new_c.sock.Write(cb.send)
+			 if err != nil {
+				 ne.log_error(err.Error(), "thr_send_data", "send")
+				 cb.callback(errors.New(ERR_THR_SEND_DATA))
+				 break
 			 }
 
-		 case CONN_CLOSED:
-			 ne.clean_conn(new_fd)
-			 if err = conn.Close(); err != nil {
-				 ne.log_error(err.Error())
+			 cb.recv_len, err = new_c.sock.Read(cb.recv)
+			 if err != nil {
+				 ne.log_error(err.Error(), "thr_send_data", "recv")
+				 cb.callback(errors.New(ERR_THR_SEND_DATA))
+				 break
 			 }
-			 if ne.OnClose != nil {
-				 if res = ne.OnClose(new_fd); res != nil {
-					 ne.log_error(res.Error())
+
+
+			 new_c.thr_callback = nil
+
+			 //release lock
+			 _ = <-new_c.thr_lock
+
+
+			 //进行本连接的守护工作
+		 } else {
+
+			 switch new_c.state {
+
+			 case CONN_RUNNING:
+				 if ! new_c.is_shutdown {
+					 ne.conn_read_data(new_fd)
 				 }
-			 }
-			 return
 
-		 default:
-			 ne.log_error("wrong state", "handle_conn", strconv.FormatUint(uint64(new_fd), 10), strconv.FormatUint(uint64(new_c.state), 10))
-			 if err = ne.clean_conn(new_fd); err != nil {
-				 ne.log_error(err.Error())
-			 }
-			 if err = conn.Close(); err != nil {
-				 ne.log_error(err.Error())
-			 }
-			 break;
+			 case CONN_CLOSED:
+				 ne.clean_conn(new_fd)
+				 if err = conn.Close(); err != nil {
+					 ne.log_error(err.Error())
+				 }
+				 if ne.OnClose != nil {
+					 if res = ne.OnClose(new_fd); res != nil {
+						 ne.log_error(res.Error())
+					 }
+				 }
+				 return
+
+			 default:
+				 ne.log_error("wrong state", "handle_conn", strconv.FormatUint(uint64(new_fd), 10), strconv.FormatUint(uint64(new_c.state), 10))
+				 if err = ne.clean_conn(new_fd); err != nil {
+					 ne.log_error(err.Error())
+				 }
+				 if err = conn.Close(); err != nil {
+					 ne.log_error(err.Error())
+				 }
+				 break;
 
 
+			 }
 		 }
 	 }
 

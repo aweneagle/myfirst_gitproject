@@ -8,7 +8,7 @@ func main() {
 	ne.Debug = true;
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect connect:", fd)
-		ne.SetPackEof(fd, &netevent.PackEofHttpGet{}, &netevent.PackEofHttpPost{})
+		//ne.SetPackEof(fd, &netevent.PackEofHttpGet{}, &netevent.PackEofHttpPost{})
 		return nil
 	}
 	ne.OnClose = func(fd uint32) error {

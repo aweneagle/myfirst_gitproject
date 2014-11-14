@@ -9,7 +9,12 @@ func main() {
 
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect connect:", fd)
-		ne.Send(fd, []byte("1234567890"))
+		response := make([]byte, 128)
+		for {
+			ne.Request(fd, []byte("1234567890"), response)
+			fmt.Println(response)
+			time.Sleep(time.Second * 1)
+		}
 		return nil
 	}
 
@@ -20,9 +25,7 @@ func main() {
 	}
 
 	ne.OnRecv = func(fd uint32, pack []byte) error {
-		fmt.Println(string(pack))
-		ne.Send(fd, pack)
-		time.Sleep(time.Second * 1)
+		fmt.Println("OnRecv:", string(pack))
 		return nil
 	}
 
