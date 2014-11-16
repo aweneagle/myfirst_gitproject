@@ -9,14 +9,29 @@ func main() {
 
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect connect:", fd)
-		response := make([]byte, 128)
+		go func() {
+			response := make([]byte, 128)
+			for {
+				ne.Request(fd, []byte("123456789000"), response)
+				fmt.Println("thread 1:", string(response))
+				time.Sleep(time.Second * 1)
+			}
+		}()
 		for {
-			ne.Request(fd, []byte("1234567890"), response)
-			fmt.Println(response)
+			response := make([]byte, 128)
+			ne.Request(fd, []byte("abcdefghi"), response)
+			fmt.Println("thread 2:", string(response))
 			time.Sleep(time.Second * 1)
 		}
 		return nil
 	}
+	/*
+	ne.OnConn = func(fd uint32) error {
+		fmt.Println("connect:", fd)
+		ne.Send(fd, []byte("abcdef"))
+		return nil
+	}
+	*/
 
 	ne.OnClose = func(fd uint32) error {
 		ne.Close(fd)
@@ -26,6 +41,8 @@ func main() {
 
 	ne.OnRecv = func(fd uint32, pack []byte) error {
 		fmt.Println("OnRecv:", string(pack))
+		ne.Send(fd, pack)
+		time.Sleep(1 * time.Second)
 		return nil
 	}
 

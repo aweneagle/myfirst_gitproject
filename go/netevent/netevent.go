@@ -36,7 +36,7 @@ import	"os"
 import	"errors"
 import	"io"
 import	"bytes"
-import	"fmt"
+//import	"fmt"
 
 type net_event_driver struct{
 
@@ -155,23 +155,12 @@ type connect struct {
 
 	state	uint8	//connect state:  ST_CONN_INI, ST_CONN_RUNNING, ST_CONN_TO_CLOSE
 
+	//线程安全：socket读/写锁
+	r_lock	chan bool	//读锁
+	r_unlock	chan bool
+	w_lock	chan bool	//写锁
+	w_unlock	chan bool
 
-	//(下面所说的"线程”指的是"goroutine")
-	//每次只处理一个线程回调
-	thr_lock	chan	bool
-
-	//同步请求数据
-	thr_callback	*thr_send_data
-
-
-}
-
-//跨线程请求数据
-type	thr_send_data struct {
-	send	[]byte
-	recv	[]byte
-	recv_len	int
-	callback	func( err error )
 }
 
 
@@ -299,6 +288,49 @@ func (ne *net_event_driver) CleanPackEof (fd uint32) error {
 }
 
 
+/* 获取读权限锁，如果已经有其它线程获取了该connect的读权限, 该函数会阻塞
+ *
+ */
+func (c *connect) lock_read () {
+	for {
+		select {
+		case _ = <-c.r_lock:
+			return
+		default:
+			break
+		}
+	}
+}
+
+/* 释放读权限锁
+ *
+ */
+func (c *connect) unlock_read(){
+	c.r_unlock <- true
+}
+
+/* 获取写权限锁，如果已经有其它线程获取了该connect的写权限, 该函数会阻塞
+ *
+ */
+func (c *connect) lock_write () {
+	for {
+		select {
+		case _ = <-c.w_lock:
+			return
+		default:
+			break
+		}
+	}
+}
+
+/* 释放写权限锁
+ *
+ */
+func (c *connect) unlock_write(){
+	c.w_unlock <- true
+}
+
+
 
 /* 发送一个数据包到一个连接，并等待返回数据，期间OnRecv函数不会被回调
  *
@@ -307,33 +339,23 @@ func (ne *net_event_driver) CleanPackEof (fd uint32) error {
  * @return	length int, 返回的数据包长度
  */
 func (ne *net_event_driver) Request (fd uint32, request []byte, response []byte) (int, error) {
-	var (
-		e	error
-	)
-
-	conn, exist := ne.conns[fd]
+	conn,exist := ne.conns[fd]
 	if !exist {
-		ne.log_error(ERR_BAD_FD, "Request", strconv.FormatUint(uint64(fd), 10))
+		ne.log_error(ERR_BAD_FD, "Send", strconv.FormatUint(uint64(fd), 10))
 		return 0, errors.New(ERR_BAD_FD)
 	}
 
-	cb := thr_send_data { send: request, recv: response }
-
-	wait := make(chan bool, 1)
-
-	cb.callback = func (err error) {
-		//收到回调通知
-		e = err
-		wait <- true
+	/* 获取 读权限锁,写权限锁 */
+	conn.lock_read()
+	conn.lock_write()
+	num, err := conn.sock.Write(request)
+	if err != nil {
+		return num, err
 	}
-
-	//注册监听接口
-	conn.thr_send(&cb)
-
-	//等待通知
-	_ = <-wait
-
-	return cb.recv_len, e
+	num, err = conn.sock.Read(response)
+	conn.unlock_write()
+	conn.unlock_read()
+	return num, err
 }
 
 
@@ -349,7 +371,11 @@ func (ne *net_event_driver) Send (fd uint32, pack []byte) (int, error) {
 		return 0, errors.New(ERR_BAD_FD)
 	}
 	if conn.state == CONN_RUNNING {
-		return conn.sock.Write(pack)
+		conn.lock_write()
+		length, err := conn.sock.Write(pack)
+		conn.unlock_write()
+		return length, err
+
 	}
 	return 0, errors.New(ERR_CONN_BAD_STATE)
 }
@@ -594,7 +620,9 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 	// 从socket中读取数据
 	buff_len = conn.buff_len
 	phead = conn.pack_head
+	conn.lock_read()
 	read_len, err = conn.sock.Read(conn.buff[buff_len : ])
+	conn.unlock_read()
 
 	ne.log_debug(fd, "read", "-----read:", strconv.FormatUint(uint64(read_len), 10), ",h:", strconv.FormatUint(uint64(buff_len), 10), "buff_size:", strconv.FormatUint(uint64(conn.buff_size), 10))
 	buff_len += read_len
@@ -637,6 +665,10 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 			buff_len -= phead
 			phead = 0
 		}
+	} else if buff_len == phead {
+		//所有的数据都已经被返回给OnRecv, 此时buff需要清空
+		buff_len -= phead
+		phead = 0
 	}
 
 	ne.log_debug(fd, "read", "-----final phead:", strconv.FormatUint(uint64(phead), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
@@ -669,8 +701,10 @@ func (ne *net_event_driver) new_conn (conn net.Conn) (uint32, error) {
 	}
 
 	new_conn := &connect { sock: conn }
-	new_conn.thr_callback = nil
-	new_conn.thr_lock = make(chan bool, 1)
+	new_conn.r_unlock = make( chan bool )
+	new_conn.r_lock = make( chan bool )
+	new_conn.w_unlock = make( chan bool )
+	new_conn.w_lock = make( chan bool )
 	new_conn.buff = make([]byte, ne.ConnBuffSize)
 	new_conn.buff_len = 0
 	new_conn.buff_size = ne.ConnBuffSize
@@ -681,6 +715,21 @@ func (ne *net_event_driver) new_conn (conn net.Conn) (uint32, error) {
 	new_conn.is_shutdown = false
 	new_conn.is_shutup = false
 	ne.conns[new_fd] = new_conn
+
+	 //启动读锁
+	 go func(){
+		for {
+			new_conn.r_lock <- true
+			_ = <-new_conn.r_unlock
+		}
+	 }()
+	 //启动写锁
+	 go func(){
+		 for {
+			 new_conn.w_lock <- true
+			 _ = <-new_conn.w_unlock
+		 }
+	 }()
 
 	// 调用 OnConn 回调函数
 	if ne.OnConn != nil {
@@ -702,13 +751,6 @@ func (ne *net_event_driver) clean_conn (fd uint32) error {
 	return nil
 }
 
-/* 
- * 线程接受来自其他connect线程的回调接口
- */
-func (c *connect) thr_send (callback *thr_send_data) {
-	c.thr_lock <- true
-	c.thr_callback = callback
-}
 
 const	ERR_THR_SEND_DATA	=	"thr send data error"
 
@@ -725,67 +767,37 @@ func (ne *net_event_driver) handle_conn(new_fd uint32) {
 	 conn := new_c.sock
 	 for {
 
-		 //接受其他线程的交互请求
-		 if new_c.thr_callback != nil {
 
-			 cb := new_c.thr_callback
-			 cb.recv_len = 0
+		 switch new_c.state {
 
-			 _, err = new_c.sock.Write(cb.send)
-			 if err != nil {
-				 ne.log_error(err.Error(), "thr_send_data", "send")
-				 cb.callback(errors.New(ERR_THR_SEND_DATA))
-				 break
+		 case CONN_RUNNING:
+			 if ! new_c.is_shutdown {
+				 ne.conn_read_data(new_fd)
 			 }
 
-			 cb.recv_len, err = new_c.sock.Read(cb.recv)
-			 if err != nil {
-				 ne.log_error(err.Error(), "thr_send_data", "recv")
-				 cb.callback(errors.New(ERR_THR_SEND_DATA))
-				 break
+		 case CONN_CLOSED:
+			 ne.clean_conn(new_fd)
+			 if err = conn.Close(); err != nil {
+				 ne.log_error(err.Error())
 			 }
-
-
-			 new_c.thr_callback = nil
-
-			 //release lock
-			 _ = <-new_c.thr_lock
-
-
-			 //进行本连接的守护工作
-		 } else {
-
-			 switch new_c.state {
-
-			 case CONN_RUNNING:
-				 if ! new_c.is_shutdown {
-					 ne.conn_read_data(new_fd)
+			 if ne.OnClose != nil {
+				 if res = ne.OnClose(new_fd); res != nil {
+					 ne.log_error(res.Error())
 				 }
-
-			 case CONN_CLOSED:
-				 ne.clean_conn(new_fd)
-				 if err = conn.Close(); err != nil {
-					 ne.log_error(err.Error())
-				 }
-				 if ne.OnClose != nil {
-					 if res = ne.OnClose(new_fd); res != nil {
-						 ne.log_error(res.Error())
-					 }
-				 }
-				 return
-
-			 default:
-				 ne.log_error("wrong state", "handle_conn", strconv.FormatUint(uint64(new_fd), 10), strconv.FormatUint(uint64(new_c.state), 10))
-				 if err = ne.clean_conn(new_fd); err != nil {
-					 ne.log_error(err.Error())
-				 }
-				 if err = conn.Close(); err != nil {
-					 ne.log_error(err.Error())
-				 }
-				 break;
-
-
 			 }
+			 return
+
+		 default:
+			 ne.log_error("wrong state", "handle_conn", strconv.FormatUint(uint64(new_fd), 10), strconv.FormatUint(uint64(new_c.state), 10))
+			 if err = ne.clean_conn(new_fd); err != nil {
+				 ne.log_error(err.Error())
+			 }
+			 if err = conn.Close(); err != nil {
+				 ne.log_error(err.Error())
+			 }
+			 break;
+
+
 		 }
 	 }
 
