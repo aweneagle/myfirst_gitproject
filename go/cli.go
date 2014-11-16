@@ -2,6 +2,8 @@ package	main
 import	"./netevent"
 import	"fmt"
 import	"time"
+//import	"reflect"
+//import	"net"
 
 func main() {
 
@@ -28,8 +30,17 @@ func main() {
 	/*
 	ne.OnConn = func(fd uint32) error {
 		fmt.Println("connect:", fd)
-		ne.Send(fd, []byte("abcdef"))
-		return nil
+		buf := make([]byte, 128)
+		sock := ne.GetSock(fd)
+		sock.SetReadDeadline(time.Now().Add(1 * time.Second))
+		num, err := sock.Read(buf)
+		_, fe := reflect.TypeOf(err).MethodByName("Timeout")
+		fmt.Println("error name is:", fe)
+		if err != nil {
+			fmt.Println("err:", err.Error(), err.(net.Error).Timeout())
+		}
+		fmt.Println("num:", num)
+		return err
 	}
 	*/
 
@@ -41,8 +52,12 @@ func main() {
 
 	ne.OnRecv = func(fd uint32, pack []byte) error {
 		fmt.Println("OnRecv:", string(pack))
-		ne.Send(fd, pack)
-		time.Sleep(1 * time.Second)
+		resp := make([]byte, 128)
+		for {
+			ne.Request(fd, pack, resp)
+			fmt.Println("response:", string(resp))
+			time.Sleep(1 * time.Second)
+		}
 		return nil
 	}
 

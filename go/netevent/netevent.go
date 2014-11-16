@@ -36,6 +36,7 @@ import	"os"
 import	"errors"
 import	"io"
 import	"bytes"
+import	"reflect"
 //import	"fmt"
 
 type net_event_driver struct{
@@ -358,6 +359,10 @@ func (ne *net_event_driver) Request (fd uint32, request []byte, response []byte)
 	return num, err
 }
 
+func (ne *net_event_driver) GetSock (fd uint32) net.Conn {
+	return ne.conns[fd].sock
+}
+
 
 /* 发送一个数据包到一个连接
  *
@@ -621,8 +626,16 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 	buff_len = conn.buff_len
 	phead = conn.pack_head
 	conn.lock_read()
+	conn.sock.SetReadDeadline(time.Now().Add(1 * time.Microsecond))
 	read_len, err = conn.sock.Read(conn.buff[buff_len : ])
 	conn.unlock_read()
+	//读超时，直接返回
+	if err != nil {
+		_, has_method_timeout := reflect.TypeOf(err).MethodByName("Timeout")
+		if has_method_timeout && err.(net.Error).Timeout() {
+			return
+		}
+	}
 
 	ne.log_debug(fd, "read", "-----read:", strconv.FormatUint(uint64(read_len), 10), ",h:", strconv.FormatUint(uint64(buff_len), 10), "buff_size:", strconv.FormatUint(uint64(conn.buff_size), 10))
 	buff_len += read_len
