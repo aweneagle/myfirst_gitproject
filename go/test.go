@@ -43,7 +43,7 @@ func main () {
 	}
 
 	go func() {
-		time.Sleep(10000 * time.Nanosecond)
+		time.Sleep(100000 * time.Nanosecond)
 		r.Quit()
 	}()
 

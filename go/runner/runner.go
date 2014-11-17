@@ -78,6 +78,9 @@ type Runner struct {
 	*/
 	quit	chan bool
 
+	/* 紧急终止 */
+	to_quit	bool
+
 	/* 接受 请求routine 的请求
 	 */
 	event_in	chan Event
@@ -101,6 +104,7 @@ func Init () *Runner {
 	p.event_in = make(chan Event)
 	p.event_out = make(chan Event)
 	p.quit = make(chan bool)
+	p.to_quit = false
 	go p.run()
 	return p
 }
@@ -114,6 +118,9 @@ func (p *Runner) Request (in Event) error {
 		m int32
 		slp uint64 = 1
 	)
+	if p.to_quit {
+		return errors.New("runner is shutdown")
+	}
 	for {
 		if m := p.r_mutx.Up(); m > 0 {
 			//println("sending request")
@@ -134,6 +141,7 @@ func (p *Runner) Request (in Event) error {
 
 		} else if m == MUTX_ERR_CAP_FULL || m == MUTX_ERR_SYS_BUSY {
 			/* sleep for a few nanoseconds */
+			return nil
 			time.Sleep( time.Duration(slp) * time.Nanosecond)
 			slp += 1
 			if slp > 128 {
@@ -153,6 +161,9 @@ func (p *Runner) Quit() error {
 	if p.q_mutx.Up() > 0 {
 
 		/* 关闭Request, 拒绝后续的请求 */
+		p.to_quit = true
+
+		/* 关闭mutx */
 		p.r_mutx.Down()
 		if p.r_mutx.IsClosed() {
 			p.quit <- true
