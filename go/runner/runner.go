@@ -9,7 +9,65 @@ package	runner
 import	"sync/atomic"
 import	"errors"
 
+/* 有限容量的信号量 
+ * 
+ * 一个信号量共有三个操作：
+ *   Up()	增加信号量 num += 1, 直到容量已满
+ *   Down()	减少信号量 num -= 1
+ */
+type Mutx struct {
+	num	int32	//当前信号量
+	ca	int32	//容量
+}
+
+/* 初始化一个信号量 
+ */
+func Mutx(ca int32) *Mutx {
+	return  &Mutx{ ca:ca, num:0 }
+}
+
+const	MUTX_ERR_CLOSED = -1
+const	MUTX_ERR_SYS_BUSY = -2
+const	MUTX_ERR_CAP_FULL = -3
+
+/* up 增加信号量，直至达到容量 m.ca 为止
+ * 
+ */
+func (m *Mutx) Up () int32 {
+	new_m := m.num + 1
+	if m.num >= 0 && new_m <= m.ca && atomic.CompareAndSwapInt32(&m.num, m.num, new_m) {
+		return new_m
+	}
+	if new_m <= m.ca {
+		/* 系统繁忙 */
+		return MUXT_ERR_SYS_BUSY
+	} else if m.num < 0 {
+		return MUTX_ERR_CLOSED
+	} else {
+		/* 容量已达到上限 */
+		return MUTX_ERR_CAP_FULL
+	}
+}
+
+/* down 减少信号量
+ */
+func (m *Mutx) Down() int32 {
+	if atomic.AddInt32(&m.num, -1) < 0 {
+		return MUTX_ERR_CLOSED
+	}
+}
+
+/* 判断信号量是否已经关闭
+ */
+func (m *Mutx) IsClosed() {
+	return m.num < 0
+}
+
+
+
 type Runner struct {
+	/* Request 信号量 */
+	r_mutx	*Mutx
 	/* 有多少 routine 在执行 Quit */
 	quitting int32
 
@@ -49,6 +107,8 @@ type Event interface {
 /* 初始化一个处理器, 并启动它 */
 func Init () *Runner {
 	p := &Runner{}
+	p.r_mutx = Mutx(65535)
+	p.q_mutx = Mutx(1)
 	p.event_in = make(chan Event)
 	p.event_out = make(chan Event)
 	p.quit = make(chan bool)
@@ -65,24 +125,23 @@ func Init () *Runner {
  *
  */
 func (p *Runner) Request (in Event) error {
-	if p.shutdown != true && p.running >= 0 {
-		atomic.AddInt32(&p.running, 1)
+	if p.r_mutx.Up() > 0 {
 		//println("sending request")
 		p.event_in <- in
 		//println("sending result")
 		_ = <-p.event_out
 		//println("return result...")
-		new_running := atomic.AddInt32(&p.running, -1)
+		p.r_mutx.Down()
 
 		/* 最后一个离开 Request 的 routine需要通知 Runner 可以关闭服务了 */
-		if p.shutdown == true && new_running < 0 {
-			p.final_quit <- true
+		if p.shutdown == true && p.r_mutx.IsClosed() {
+			p.quit <- true
 			//println("final quitting start...")
 		}
 		//println("leaving Requesst ...", p.running)
 		return nil
 	}
-	return errors.New("Runner is not running")
+	return errors.New("sys busy")
 }
 
 
