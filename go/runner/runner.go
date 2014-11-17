@@ -20,7 +20,8 @@ type Runner struct {
 	*/
 	quit	chan bool
 
-	to_quit	bool
+	/* 关闭 Request */
+	shutdown	bool
 
 	/* 仍留在 Request() 函数内的 routine，通过 final_quit 告诉 runner 可以关闭服务了 
 	 *
@@ -54,7 +55,7 @@ func Init () *Runner {
 	p.final_quit = make(chan bool)
 	p.running = 0
 	p.quitting = 0
-	p.to_quit = false
+	p.shutdown = false
 	go p.run()
 	return p
 }
@@ -64,7 +65,7 @@ func Init () *Runner {
  *
  */
 func (p *Runner) Request (in Event) error {
-	if p.to_quit != true &&  p.running >= 0 {
+	if p.shutdown != true && p.running >= 0 {
 		atomic.AddInt32(&p.running, 1)
 		//println("sending request")
 		p.event_in <- in
@@ -74,14 +75,13 @@ func (p *Runner) Request (in Event) error {
 		new_running := atomic.AddInt32(&p.running, -1)
 
 		/* 最后一个离开 Request 的 routine需要通知 Runner 可以关闭服务了 */
-		if p.to_quit == true && new_running < 0 {
+		if p.shutdown == true && new_running < 0 {
 			p.final_quit <- true
 			//println("final quitting start...")
 		}
 		//println("leaving Requesst ...", p.running)
 		return nil
 	}
-	//atomic.AddInt32(&p.running, -1)
 	return errors.New("Runner is not running")
 }
 
@@ -92,6 +92,10 @@ func (p *Runner) Quit() error {
 	atomic.AddInt32(&p.quitting, 1)
 	/* 只允许一个routine向 p.quit 发送 信号 */
 	if p.quitting == 1 {
+
+		/* 关闭Request, 拒绝后续的请求 */
+		p.shutdown = true
+
 		atomic.AddInt32(&p.running, -1)
 		//println("quiting[", p.running, "]")
 		p.quit <- true
@@ -107,7 +111,7 @@ func (p *Runner) run () {
 
 			/* 收到来自 Request 中的 routine 的终止信号 */
 		case _ = <-p.final_quit:
-			//println("quiting done...", p.running)
+			println("quiting done...", p.running)
 			close(p.event_in)
 			close(p.event_out)
 			close(p.quit)
@@ -116,8 +120,6 @@ func (p *Runner) run () {
 
 			/* 收到来自 Quit 的终止信号 */
 		case _ = <-p.quit:
-			/* 关闭Request, 拒绝后续的请求 */
-			p.to_quit = true
 
 			/* 还有routine未离开Request函数 */
 			if p.running >= 0 {
@@ -126,7 +128,7 @@ func (p *Runner) run () {
 				break
 
 			} else {
-				//println("quiting done...", p.running)
+				println("quiting done...", p.running)
 				close(p.event_in)
 				close(p.event_out)
 				close(p.quit)
