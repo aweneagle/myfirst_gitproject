@@ -38,8 +38,11 @@ func (m *Mutx) Up () int32 {
 	new_m := m.num + 1
 	if m.num >= 0 && new_m <= m.ca && atomic.CompareAndSwapInt32(&m.num, m.num, new_m) {
 		return new_m
-	}
-	if new_m <= m.ca && m.num >= 0 {
+	} else if new_m <= m.ca && m.num >= 0 {
+	/*
+	if m.num >= 0 && new_m <= m.ca {
+		return atomic.AddInt32(&m.num, 1)
+		*/
 		/* 系统繁忙 */
 		return MUTX_ERR_SYS_BUSY
 	} else if m.num < 0 {
@@ -78,6 +81,10 @@ type Runner struct {
 	*/
 	quit	chan bool
 
+	/* 终止完成
+	 */
+	quit_done	chan bool
+
 	/* 紧急终止 */
 	to_quit	bool
 
@@ -104,6 +111,7 @@ func Init () *Runner {
 	p.event_in = make(chan Event)
 	p.event_out = make(chan Event)
 	p.quit = make(chan bool)
+	p.quit_done = make(chan bool)
 	p.to_quit = false
 	go p.run()
 	return p
@@ -141,7 +149,7 @@ func (p *Runner) Request (in Event) error {
 
 		} else if m == MUTX_ERR_CAP_FULL || m == MUTX_ERR_SYS_BUSY {
 			/* sleep for a few nanoseconds */
-			return nil
+			//return nil
 			time.Sleep( time.Duration(slp) * time.Nanosecond)
 			slp += 1
 			if slp > 128 {
@@ -165,9 +173,13 @@ func (p *Runner) Quit() error {
 
 		/* 关闭mutx */
 		p.r_mutx.Down()
+
+		/* 如果已经没有其他线程在使用服务，可以直接关闭 */
 		if p.r_mutx.IsClosed() {
 			p.quit <- true
 		}
+		/* 交给最后一个离开Request的线程执行 p.quit <- true, 见 func (p *Runner) Request (in Event) error */
+		_ = <-p.quit_done
 		return nil
 	}
 	return errors.New("runner is shutting down")
@@ -184,6 +196,11 @@ func (p *Runner) run () {
 			close(p.event_in)
 			close(p.event_out)
 			close(p.quit)
+			select {
+			/* 通知未离开 Quit 的线程 */
+			case p.quit_done <- true:
+				/* do nothing */
+			}
 			return
 
 			/* 收到请求，处理*/

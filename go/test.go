@@ -42,10 +42,17 @@ func main () {
 		go test(r, e, num)
 	}
 
-	go func() {
-		time.Sleep(100000 * time.Nanosecond)
-		r.Quit()
-	}()
+	for i := 0; i < 3; i ++ {
+		go func() {
+			time.Sleep(100000 * time.Nanosecond)
+			println("quit start")
+			if err := r.Quit(); err == nil {
+				println("quit success ....")
+			} else {
+				println("quit err:", err.Error())
+			}
+		}()
+	}
 
 	fmt.Scanln()
 
