@@ -70,6 +70,9 @@ func (m *Mutx) IsClosed() bool {
 }
 
 
+/* 事件处理 */
+type Event func()
+
 
 type Runner struct {
 	/* Quit 信号量 */
@@ -96,11 +99,6 @@ type Runner struct {
 	*/
 	event_out	chan Event
 
-}
-
-type Event interface {
-	/* 事件处理 */
-	Handle ()
 }
 
 /* 初始化一个处理器, 并启动它 */
@@ -206,7 +204,8 @@ func (p *Runner) run () {
 			/* 收到请求，处理*/
 		case e := <-p.event_in:
 			//println("recv request")
-			e.Handle()
+			//e.Handle()
+			e()
 			//println("handle request")
 			p.event_out <- e
 			//println("return result")

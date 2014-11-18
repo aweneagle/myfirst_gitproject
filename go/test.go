@@ -13,7 +13,7 @@ func (e *event) Handle () {
 	e.num += 1
 }
 
-func test(r *runner.Runner, e *event, num int) {
+func test(r *runner.Runner, e func(), num int) {
 	begin := time.Now()
 	var i int
 	for i = 0 ; i < num; i ++ {
@@ -39,10 +39,10 @@ func main () {
 	fmt.Scanf("%d", &num)
 
 	for i := 0 ; i < times; i ++ {
-		go test(r, e, num)
+		go test(r, e.Handle, num)
 	}
 
-	for i := 0; i < 3; i ++ {
+	for i := 0; i < 10; i ++ {
 		go func() {
 			time.Sleep(100000 * time.Nanosecond)
 			println("quit start")

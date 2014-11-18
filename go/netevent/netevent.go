@@ -1,47 +1,27 @@
-/*
- * net event driver
+/* net event driver 
  *
- * 这是个微型网络事件框架，通过注册事件监听函数的方式，来简化网络应用开发的工作
+ * 微型网络事件驱动
  *
- * 使用示例:
- *		//给一个端口绑定一个驱动实例
- *		ne,_ := netevent.Listen("*:8888")
- *
- *		//注册handler， 监听该端口的"新增连接"事件
- *		ne.OnConnect	= func (fd uint32) {  
- *		//添加自动分包规则
- *			ne.SetPackEof(fd, netevent.PackEof { Eof:"_*_*_" } );
- *		}
- *
- *		//注册handler， 监听该端口的"数据包到达"事件
- *		ne.OnRecv		= func (pack []byte, fd uint32) {  
- *			//发送数据包
- *			ne.Send(fd, pack);
- *		}
- * 
- *		//注册handler,	监听该端口的"连接关闭"事件
- *		ne.OnClose		= func (fd uint32) {  
- *			//清理自动分包规则
- *			ne.CleanPackEof(fd);
- *		}
- *
+ * by awen, 2014.11.17
  */
 
 package	netevent
+
+import	"../runner"
 import	"net"
-import	"strings"
-import	"strconv"
+import	"reflect"
+import	"errors"
 import	"time"
 import	"os"
-import	"errors"
+import	"strings"
+import	"strconv"
 import	"io"
 import	"bytes"
-import	"reflect"
-//import	"fmt"
 
-type net_event_driver struct{
 
-	/* 回调函数：返回的error只用于net_event_driver的error_log*/
+type netevent struct {
+
+	/* 回调函数：返回的error只用于netevent的error_log*/
 	OnRecv	func(uint32, []byte) error
 	OnClose	func(uint32) error
 	OnConn	func(uint32) error
@@ -84,8 +64,6 @@ type net_event_driver struct{
 	*/
 	DebugLog	string	//当debug = true时，如果该文件路径为空，日志内容将输出到stdout；否则输出到该文件中
 
-
-
 	/* Debug:	
 
 	是否开启dbeug模式
@@ -127,43 +105,15 @@ type net_event_driver struct{
 
 
 
-
+	/* 在线连接 */
+	conns	map[uint32]*connect
 
 	host_port	string	//监听的端口
 
-	conns	map[uint32] *connect
-
 	last_fd	uint32//上一次被使用的fd
 
-}
-
-const	PACK_EOF_MAX_NUM	=	6	//每个连接所能拥有的最大的自动分包规则数量
-const	CONN_RUNNING = 1
-const	CONN_CLOSED = 2
-type connect struct {
-	sock	net.Conn
-	buff	[]byte
-	buff_len	int
-	buff_size	int
-	pack_head	int
-
-	is_shutup	bool
-	is_shutdown	bool
-
-	pack_eof	[PACK_EOF_MAX_NUM] i_net_pack_eof	//自动分包规则
-	pack_eof_num	uint8	//自动分包规则数量
-	last_op_time	int64	//上一次操作时间(send or recv)
-
-	state	uint8	//connect state:  ST_CONN_INI, ST_CONN_RUNNING, ST_CONN_TO_CLOSE
-
-	//线程安全：socket读/写锁
-	r_lock	chan bool	//读锁
-	r_unlock	chan bool
-	w_lock	chan bool	//写锁
-	w_unlock	chan bool
 
 }
-
 
 
 const CFG_MAX_CONN_NUM = 65535
@@ -172,8 +122,8 @@ const CFG_MAX_CONN_NUM = 65535
  *
  * @param	host_port, ip和端口用":"隔开, 格式:"*:8888"
  */
-func Init () *net_event_driver {
-	ne := new(net_event_driver)
+func Init () *netevent {
+	ne := new(netevent)
 
 	ne.MaxConnNum = CFG_MAX_CONN_NUM
 	ne.conns = make(map[uint32]*connect, ne.MaxConnNum)
@@ -192,56 +142,143 @@ func Init () *net_event_driver {
 }
 
 
-const ERR_BAD_PACKAGE = "bad package"
-const ERR_BAD_FD = "bad fd"
-const ERR_CONN_BAD_STATE = "connect bad state"
+
+/* 连接远端服务器，并监听数据
+ *
+ * @param	host_port	string, 格式： "127.0.0.1:8888"
+ */
+func (ne *netevent) Dial(host_port string) error {
+	var (
+		conn net.Conn
+		err	error
+		new_fd	uint32
+	)
+	conn, err = net.Dial("tcp", host_port)
+	if err != nil {
+		ne.log_error("Dial: Dial", err.Error())
+		return err
+	}
+
+	new_fd, err = ne.add_connect(conn)
+	if err != nil {
+		ne.log_error("Dial: add_connect", err.Error())
+		if err = conn.Close(); err != nil {
+			ne.log_error("Dial: conn.Close", err.Error())
+		}
+		return err
+	}
+
+	return ne.run_connect(new_fd)
+}
+
 
 
 /* 监听端口
  *
+ * @param	host_port	string, 格式： "127.0.0.1:8888"
  */
-func (ne *net_event_driver) Listen (host_port string) error {
-	ne.host_port = host_port
+func (ne *netevent) Listen(host_port string) error {
+	var (
+		conn net.Conn
+		err	error
+		new_fd	uint32
+		tcp_addr	*net.TCPAddr
+		listener	*net.TCPListener
+	)
 
-	//如果最大连接数被用户设置过，则需要重新申请连接池内存
-	if ne.MaxConnNum != CFG_MAX_CONN_NUM {
-		ne.conns = make(map[uint32]*connect, ne.MaxConnNum)
+	tcp_addr, err = net.ResolveTCPAddr("tcp", host_port)
+	if err != nil {
+		ne.log_error("Listen: net.ResolveTCPAddr", err.Error())
+		return err
 	}
 
-	tcp_addr, addr_err := net.ResolveTCPAddr("tcp", ne.host_port)
-	if addr_err != nil {
-		ne.log_error(addr_err.Error())
-		return addr_err
+	listener, err = net.ListenTCP("tcp", tcp_addr)
+	if err != nil {
+		ne.log_error("Listen: net.ListenTCP", err.Error())
+		return err
 	}
-
-	listener, lis_err := net.ListenTCP("tcp", tcp_addr)
-	if lis_err != nil {
-		ne.log_error(lis_err.Error())
-		return lis_err
-	}
-
 
 	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			ne.log_error(err.Error())
+		if conn, err = listener.Accept() ; err != nil {
+			ne.log_error("Listen: Accept", err.Error())
+			continue
+		}
+		if new_fd, err = ne.add_connect(conn); err != nil {
+			ne.log_error("Listen: add_connect", err.Error())
+			if err = conn.Close(); err != nil {
+				ne.log_error("Listen: Close", err.Error())
+			}
 			continue
 		}
 
-		// 开启线程处理该链接
-		new_fd, err := ne.new_conn(conn)
-		if err != nil {
-			//添加新连接失败
-			ne.log_error(err.Error(), "Start")
-			return err
-		}
-
-		go ne.handle_conn(new_fd)
+		go ne.run_connect(new_fd)
 	}
-	return nil
 }
 
 
+/* 连接远端服务器, 返回fd
+ *
+ * @param	host_port	string, 格式： "127.0.0.1:8888"
+ */
+func (ne *netevent) Connect(host_port string) (uint32, error) {
+	var (
+		conn net.Conn
+		err	error
+		new_fd	uint32
+	)
+	conn, err = net.Dial("tcp", host_port)
+	if err != nil {
+		ne.log_error("Connect: Dial", err.Error())
+		return 0, err
+	}
+
+	if new_fd, err = ne.add_connect(conn); err != nil {
+		ne.log_error("Connect: add_connect", err.Error())
+		if err = conn.Close(); err != nil {
+			ne.log_error("Connect: conn.Close", err.Error())
+		}
+		return 0, err
+	}
+
+	go ne.run_connect(new_fd)
+
+	return new_fd, nil
+
+}
+
+
+/* 向一个连接发送数据包
+ *
+ */
+func (ne *netevent) Send(fd uint32, pack []byte) (int, error) {
+	if c,exists := ne.conns[fd] ; exists {
+		return c.Send(pack)
+	}
+	return 0, errors.New("bad fd")
+}
+
+
+/* 向一个连接发送数据包，并等待返回结果
+ *
+ */
+func (ne *netevent) Request(fd uint32, req []byte, resp []byte) (int, error) {
+	if c,exists := ne.conns[fd] ; exists {
+		return c.Request(req, resp)
+	}
+	return 0, errors.New("bad fd")
+}
+
+
+/* 关闭一个连接
+ *
+ * @param	fd
+ */
+func (ne *netevent) Close (fd uint32) error {
+	if _, exist := ne.conns[fd] ; !exist {
+		return errors.New("bad fd")
+	}
+	return ne.conns[fd].Close()
+}
 
 /* 在一个连接上设置自动分包规则
  * 该函数会先清除之前的所有分包规则，然后将目前的规则设置上去;
@@ -251,21 +288,7 @@ func (ne *net_event_driver) Listen (host_port string) error {
  * @param	fd
  * @param	pack_eof_rule
  */
-func (ne *net_event_driver) SetPackEof (fd uint32, peof ... i_net_pack_eof) error {
-	conn := ne.conns[fd]
-	if conn == nil {
-		ne.log_error(ERR_BAD_FD, "SetPackEof", strconv.FormatUint(uint64(fd), 10))
-		return errors.New(ERR_BAD_FD)
-	}
-
-	conn.pack_eof_num = 0
-	for _, p := range peof {
-		if conn.pack_eof_num >= PACK_EOF_MAX_NUM {
-			break;
-		}
-		conn.pack_eof[conn.pack_eof_num] = p
-		conn.pack_eof_num ++
-	}
+func (ne *netevent) SetPackEof (fd uint32, peof ... i_net_pack_eof) error {
 	return nil
 }
 
@@ -274,223 +297,105 @@ func (ne *net_event_driver) SetPackEof (fd uint32, peof ... i_net_pack_eof) erro
  *
  * @param	fd
  */
-func (ne *net_event_driver) CleanPackEof (fd uint32) error {
-	conn := ne.conns[fd]
-	if conn == nil {
-		ne.log_error(ERR_BAD_FD, "SetPackEof", strconv.FormatUint(uint64(fd), 10))
-		return errors.New(ERR_BAD_FD)
-	}
-
-	var i uint8
-	for i = 0; i < conn.pack_eof_num; i ++ {
-		conn.pack_eof[i] = nil
-	}
+func (ne *netevent) CleanPackEof (fd uint32) error {
 	return nil
 }
 
 
-/* 获取读权限锁，如果已经有其它线程获取了该connect的读权限, 该函数会阻塞
- *
- */
-func (c *connect) lock_read () {
+
+
+/* 为一个连接启动守护 routine
+*/
+func (ne *netevent) run_connect(fd uint32) error {
+	var (
+		c	*connect
+		exists	bool
+		err	error
+		read_len	int
+	)
+	if c, exists = ne.conns[fd] ; !exists {
+		ne.log_error("run_connect: bad fd")
+		return errors.New("run_connect: bad fd")
+	}
+	if c.OnRecv == nil {
+		ne.log_error("run_connect: no OnRecv found")
+		return errors.New("run_connect: no OnRecv found")
+	}
 	for {
-		select {
-		case _ = <-c.r_lock:
-			return
-		default:
+		if c.shutdown {
+			/* 关闭routine */
+			if c.OnClose != nil {
+				c.OnClose()
+			}
 			break
 		}
-	}
-}
-
-/* 释放读权限锁
- *
- */
-func (c *connect) unlock_read(){
-	c.r_unlock <- true
-}
-
-/* 获取写权限锁，如果已经有其它线程获取了该connect的写权限, 该函数会阻塞
- *
- */
-func (c *connect) lock_write () {
-	for {
-		select {
-		case _ = <-c.w_lock:
-			return
-		default:
-			break
+		if read_len, err = c.listen_and_read(); err != nil {
+			/* 客户端断开连接 | 其他异常情况出现 */
+			if err == io.EOF {
+				ne.log_debug(fd, "closed")
+			} else {
+				ne.log_error("run_connect: " + err.Error())
+			}
+			if err = c.Close(); err != nil {
+				ne.log_error("run_connect: " + err.Error())
+			}
+			return err
+		}
+		if read_len > 0 {
+			ne.log_debug(fd, "read", strconv.FormatInt(int64(read_len), 10))
 		}
 	}
+	return nil
 }
 
-/* 释放写权限锁
- *
+/* 添加一个连接
  */
-func (c *connect) unlock_write(){
-	c.w_unlock <- true
-}
+func (ne *netevent) add_connect(conn net.Conn) (uint32, error) {
+	var (
+		new_fd	uint32
+		err	error
+		c	*connect
+	)
 
-
-
-/* 发送一个数据包到一个连接，并等待返回数据，期间OnRecv函数不会被回调
- *
- * @param	fd
- * @param	pack
- * @return	length int, 返回的数据包长度
- */
-func (ne *net_event_driver) Request (fd uint32, request []byte, response []byte) (int, error) {
-	conn,exist := ne.conns[fd]
-	if !exist {
-		ne.log_error(ERR_BAD_FD, "Send", strconv.FormatUint(uint64(fd), 10))
-		return 0, errors.New(ERR_BAD_FD)
-	}
-
-	/* 获取 读权限锁,写权限锁 */
-	conn.lock_read()
-	conn.lock_write()
-	num, err := conn.sock.Write(request)
+	new_fd, err = ne.new_sock_fd()
 	if err != nil {
-		return num, err
-	}
-	num, err = conn.sock.Read(response)
-	conn.unlock_write()
-	conn.unlock_read()
-	return num, err
-}
-
-func (ne *net_event_driver) GetSock (fd uint32) net.Conn {
-	return ne.conns[fd].sock
-}
-
-
-/* 发送一个数据包到一个连接
- *
- * @param	fd
- * @param	pack
- */
-func (ne *net_event_driver) Send (fd uint32, pack []byte) (int, error) {
-	conn,exist := ne.conns[fd]
-	if !exist {
-		ne.log_error(ERR_BAD_FD, "Send", strconv.FormatUint(uint64(fd), 10))
-		return 0, errors.New(ERR_BAD_FD)
-	}
-	if conn.state == CONN_RUNNING {
-		conn.lock_write()
-		length, err := conn.sock.Write(pack)
-		conn.unlock_write()
-		return length, err
-
-	}
-	return 0, errors.New(ERR_CONN_BAD_STATE)
-}
-
-
-/* 关闭一个连接
- *
- * @param	fd
- */
-func (ne *net_event_driver) Close (fd uint32) error {
-	conn, exist := ne.conns[fd]
-	if !exist {
-		//ne.log_error(ERR_BAD_FD, "Close", strconv.FormatUint(uint64(fd), 10))
-		return errors.New(ERR_BAD_FD)
-	}
-	conn.state= CONN_CLOSED
-	return nil
-}
-
-
-/* 停止向一个连接读取数据
- *
- * @param	fd
- */
-func (ne *net_event_driver) ShutDown (fd uint32) error {
-	conn,exist := ne.conns[fd]
-	if !exist {
-		ne.log_error(ERR_BAD_FD, "ShutDown", strconv.FormatUint(uint64(fd), 10))
-		return errors.New(ERR_BAD_FD)
-	}
-	conn.is_shutdown = true
-	if conn.is_shutup {
-		conn.state = CONN_CLOSED
-	}
-	return nil
-}
-
-
-/* 停止向一个连接写入数据
- *
- * @param	fd
- */
-func (ne *net_event_driver) ShutUp (fd uint32) error {
-	conn,exist := ne.conns[fd]
-	if ; !exist {
-		ne.log_error(ERR_BAD_FD, "ShutUp", strconv.FormatUint(uint64(fd), 10))
-		return errors.New(ERR_BAD_FD)
-	}
-	conn.is_shutup = true
-	if conn.is_shutdown {
-		conn.state = CONN_CLOSED
-	}
-	return nil
-}
-
-
-/* 发起一个连接, 返回fd
- *
- * @param	host_port, ip和端口用":"隔开，格式:"*:8888"
- */
-func (ne *net_event_driver) Connect (host_port string) (uint32, error) {
-	conn, err := net.Dial("tcp", host_port)
-	if err != nil {
-		ne.log_error(err.Error(), "Connect")
 		return 0, err
 	}
 
-	// 开启线程处理该链接
-	new_fd, new_err := ne.new_conn(conn)
-	if new_err != nil {
-		//添加新连接失败
-		return 0, new_err
+	c = NewConn(conn, ne.ConnBuffSize)
+
+
+	c.OnRecv = func (data []byte) error {
+		if ne.OnRecv != nil {
+			err := ne.OnRecv(new_fd, data)
+			return  err
+		}
+		return errors.New("no OnRecv found")
 	}
 
-	go ne.handle_conn(new_fd)
-	return new_fd, nil
-}
-
-
-/* 发起一个连接, 监听并处理数据包，直到连接被断开
- *
- * @param	host_port, ip和端口用":"隔开，格式:"127.0.0.1:8888"
- */
-func (ne *net_event_driver) Dial (host_port string) (uint32,error) {
-	conn, err := net.Dial("tcp", host_port)
-	if err != nil {
-		ne.log_error(err.Error(), "Connect")
-		return 0, err
+	c.OnClose = func () {
+		if ne.OnClose != nil {
+			_ = ne.OnClose(new_fd)
+		}
+		delete (ne.conns, new_fd)
 	}
 
-	// 开启线程处理该链接
-	new_fd, new_err := ne.new_conn(conn)
-	if new_err != nil {
-		//添加新连接失败
-		return 0, new_err
-	}
+	ne.conns[new_fd] = c
 
-	ne.handle_conn(new_fd)
+	if ne.OnConn != nil {
+		ne.OnConn(new_fd)
+	}
+	ne.log_debug(new_fd, "connect")
 
 	return new_fd, nil
+
 }
-
-
-
 
 /* 记录错误日志，如果记录失败，错误信息将连同失败原因一起输出到stderr
  * 错误日志的格式是固定的：CHAT|2014-11-01 11:11:11|error|
  *
  */
-func (ne *net_event_driver) log_error (msg ... string) {
+func (ne *netevent) log_error (msg ... string) {
 	now := time.Now()
 	line := "CHAT|" + now.Format("2006-01-02 15:04:05") + "|ERROR|" + strings.Join(msg, "|")
 
@@ -528,7 +433,7 @@ func (ne *net_event_driver) log_error (msg ... string) {
 /* 记录debug日志，如果记录失败，debug信息将连同失败原因一起输出到stderr
  * debug日志的格式固定为：CHAT|2014-11-01 11:11:11|DEBUG|$fd|(recv|conn|close)|(read_bytes:$read_bytes)|(pack_bytes:$pack_bytes)
  */
-func (ne *net_event_driver) log_debug (fd uint32, tag string, msg ... string) {
+func (ne *netevent) log_debug (fd uint32, tag string, msg ... string) {
 	if !ne.Debug {
 		return
 	}
@@ -566,19 +471,14 @@ func (ne *net_event_driver) log_debug (fd uint32, tag string, msg ... string) {
 
 }
 
-
 /* 将文件路径如 "/tmp/file.%Y%m%d.log" 转换成当前时间对应的 实际路径 ，如 "/tmp/file.20141107.log"
- */
-func (ne *net_event_driver) tran_log_path(log_path string, now time.Time) (string, error) {
+*/
+func (ne *netevent) tran_log_path(log_path string, now time.Time) (string, error) {
 	return "/tmp/file.20141107.log", nil
 }
 
-
-const ERR_SERVER_FULL_FILLED = "server already full filled"
-/* 从 last_fd 的位置开始，搜索整个 conns 列表，找出一个空闲的fd
- * 如果没找到，将返回“服务器已满载”的错误errors.New(ERR_SERVER_FULL_FILLED)
- */
-func (ne *net_event_driver) new_sock_fd() (uint32, error) {
+/* 生成新的fd */
+func (ne *netevent) new_sock_fd() (uint32, error) {
 	found := false
 	i := ne.last_fd + 1
 
@@ -598,53 +498,255 @@ func (ne *net_event_driver) new_sock_fd() (uint32, error) {
 	if found {
 		return i, nil
 	} else {
-		return 0, errors.New(ERR_SERVER_FULL_FILLED)
+		return 0, errors.New("socket full filled")
 	}
 }
 
 
-/* 从fd中读取数据，并调用 OnRecv 
- *
- * @param	fd	uint32
+
+/********************* connection **************************/
+type connect struct {
+	buff_size	int
+
+	pack_eof	[PACK_EOF_MAX_NUM] i_net_pack_eof	//自动分包规则
+	pack_eof_num	uint8	//自动分包规则数量
+	pack_head	int
+
+	buff_len	int
+
+	/* 网络事件处理器 */
+	runner	*runner.Runner
+
+	/* socket */
+	sock	net.Conn
+
+	/* 关闭服务 */
+	shutdown	bool
+
+
+	/* data buffer */
+	buff	[]byte
+
+
+	/* OnRecv 事件回调 */
+	OnRecv	func([]byte) error
+
+	/* OnClose 事件回调 */
+	OnClose	func()
+
+	/* 数据监听 */
+	read	read_data
+
+}
+
+const PACK_EOF_MAX_NUM = 6
+
+func NewConn(sock net.Conn, buffsize int) *connect{
+	c := & connect { shutdown: false, sock: sock}
+	c.runner = runner.Init()
+	c.buff = make([]byte, buffsize)
+
+	c.OnRecv = nil
+	c.OnClose = nil
+
+	c.buff_size = buffsize
+	c.pack_eof_num = 0
+	c.pack_head = 0
+	c.buff_len = 0
+
+
+	c.read = read_data {
+		sock : c.sock,
+		buff : c.buff[0 : buffsize],
+		read_len : 0,
+		err	: nil,
+	}
+	return c
+}
+
+
+/* 向连接发送请求，并等待响应 
+*/
+func (c *connect) Request(req []byte, response []byte) (int, error) {
+	var r = &request{ sock:c.sock, req: req, resp: response , err:nil, bytes:0 }
+	if c.shutdown {
+		return 0, errors.New("connect closed")
+	}
+	if err := c.runner.Request(r.Handle); err != nil {
+		return 0, err
+	} else {
+		return r.bytes, r.err
+	}
+}
+
+
+/* 向连接发送数据 
+*/
+func (c *connect) Send(pack []byte) (int, error) {
+	var r = &send_data{ sock:c.sock , pack: pack, err:nil, bytes:0 }
+	if c.shutdown {
+		return 0, errors.New("connect closed")
+	}
+	if err := c.runner.Request(r.Handle); err != nil {
+		return 0, err
+	} else {
+		return r.bytes, r.err
+	}
+}
+
+
+/* 关闭连接 
+*/
+func (c *connect) Close() error {
+	//关闭 Run, Request，停止接受事件
+	c.shutdown = true
+	//关闭 runner, 这里会等待所有事件完成才退出
+	c.runner.Quit()
+	return c.sock.Close()
+}
+
+
+
+/* 设置自动分包规则
+ * 该函数会先清除之前的所有分包规则，然后将目前的规则设置上去;
+ * 从左往右，第一个到 PACK_EOF_MAX_NUM 个自动分包规则会被应用上，后面的丢弃；
+ * 一个连接上可以有多个分包规则，从左往右数起，第一个先匹配上的规则将被应用上；如果所有规则遍历完之后仍得不到数据包，将返回“包未找到"的错误( error(netevent.ERR_PACK_NOT_FOUND) )
+ * 
+ * @param	pack_eof_rule
  */
-func (ne *net_event_driver) conn_read_data(fd uint32) {
-	conn, exist := ne.conns[fd]
-	if !exist {
-		ne.log_error(ERR_BAD_FD, "conn_read_data")
+func (c *connect) SetPackEof(peof ... i_net_pack_eof) error {
+	r := &set_pack_eof{ c:c, peof:peof }
+	return c.runner.Request(r.Handle)
+}
+
+
+/* 清理自动分包规则
+ *
+ */
+func (c *connect) CleanPackEof() error {
+	r := &clean_pack_eof{ conn:c }
+	return c.runner.Request(r.Handle)
+}
+
+type set_pack_eof struct {
+	c	*connect
+	peof	[]i_net_pack_eof
+}
+
+func (s *set_pack_eof) Handle () {
+	s.c.clean_pack_eof()
+	for i,peof := range s.peof {
+		if i < PACK_EOF_MAX_NUM {
+			s.c.pack_eof[i] = peof
+		}
+	}
+	s.c.pack_eof_num = uint8(len(s.peof))
+}
+
+type clean_pack_eof struct {
+	conn	*connect
+}
+
+func (c *clean_pack_eof) Handle () {
+	c.conn.clean_pack_eof()
+}
+
+
+/* 清除自动分包规则 */
+func (c *connect) clean_pack_eof() {
+	var i uint8
+	for i = 0; i < c.pack_eof_num; i ++ {
+		c.pack_eof[i] = nil
+	}
+	c.pack_eof_num = 0
+}
+
+
+
+/* 向 网络连接 发送数据 */
+type send_data struct {
+	sock	net.Conn
+	pack	[]byte
+	err	error
+	bytes	int
+}
+
+func (s *send_data) Handle() {
+	s.bytes, s.err = s.sock.Write(s.pack)
+}
+
+/* 向 网络连接 发送数据，并等待请求返回 */
+type request struct {
+	sock	net.Conn
+	req	[]byte
+	resp	[]byte
+	err	error
+	bytes	int
+}
+
+func (s *request) Handle() {
+	s.bytes = 0
+	_, s.err = s.sock.Write(s.req)
+	if s.err != nil {
 		return
 	}
+	s.bytes, s.err = s.sock.Read(s.resp)
+}
+
+
+
+/* 从 网络连接 中读取数据, 并传递给回调函数 */
+type read_data struct {
+	sock	net.Conn
+	buff	[]byte
+	read_len	int
+	err	error
+}
+
+func (s *read_data) Handle() {
+	if err := s.sock.SetReadDeadline(time.Now().Add(10 * time.Microsecond)); err != nil {
+		s.err = err
+		return
+	}
+	s.read_len, s.err = s.sock.Read(s.buff[0 : ])
+
+}
+
+func (conn *connect) listen_and_read () (int, error) {
 
 	var (
 		err	error	=	nil
 		phead	int		=	0	//package head
 		buff_len	int	=	0	//buff length
-		read_len	int
 		plen	int		=	0	//package length
+		read_len	int
 	)
 
-	// 从socket中读取数据
-	buff_len = conn.buff_len
-	phead = conn.pack_head
-	conn.lock_read()
-	conn.sock.SetReadDeadline(time.Now().Add(1 * time.Microsecond))
-	read_len, err = conn.sock.Read(conn.buff[buff_len : ])
-	conn.unlock_read()
+	conn.read.buff = conn.buff[conn.buff_len : ]
+	conn.runner.Request( conn.read.Handle )
+	err = conn.read.err
+
 	//读超时，直接返回
 	if err != nil {
 		_, has_method_timeout := reflect.TypeOf(err).MethodByName("Timeout")
 		if has_method_timeout && err.(net.Error).Timeout() {
-			return
+			return 0, nil
 		}
 	}
 
-	ne.log_debug(fd, "read", "-----read:", strconv.FormatUint(uint64(read_len), 10), ",h:", strconv.FormatUint(uint64(buff_len), 10), "buff_size:", strconv.FormatUint(uint64(conn.buff_size), 10))
+	// 从socket中读取数据
+	buff_len = conn.buff_len
+	phead = conn.pack_head
+	read_len = conn.read.read_len
+
+
 	buff_len += read_len
 
 	// 如果没有自动分包规则，直接将数据传递给OnRecv
 	if conn.pack_eof_num == 0 {
 		plen = buff_len - phead
 
-		ne.OnRecv(fd, conn.buff[phead : phead + plen])
+		conn.OnRecv(conn.buff[phead : phead + plen])
 		phead += plen
 
 	// 如果有自动分包规则，过滤分包规则并传递给OnRecv
@@ -655,25 +757,20 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 			if plen < 0 || phead + plen > buff_len {
 				break
 			}
-			ne.OnRecv(fd, conn.buff[phead : phead + plen])
-			ne.log_debug(fd, "read", "-----phead:", strconv.FormatUint(uint64(phead), 10), ",plen:", strconv.FormatUint(uint64(plen), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
+			conn.OnRecv(conn.buff[phead : phead + plen])
 			phead += plen
 		}
 	}
-
-	ne.log_debug(fd, "read", "-----end phead:", strconv.FormatUint(uint64(phead), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
 
 
 	if buff_len >= conn.buff_size {
 		if phead == 0 {
 			//当buff已满，仍未找到数据包的情况下，该buff内数据被丢弃，连接将被关闭
-			ne.Close(fd)
-			ne.log_error(ERR_BAD_PACKAGE, strconv.FormatUint(uint64(fd), 10), "buffsize:" + strconv.FormatUint(uint64(conn.buff_size), 10), "plen:"+strconv.FormatInt(int64(plen), 10))
+			return read_len, errors.New("wrong package")
 
 		} else {
 			if phead < buff_len {
 				copy(conn.buff[0 : buff_len - phead], conn.buff[ phead : buff_len ])
-				ne.log_debug(fd, "read", "[=============]COPY:", strconv.FormatUint(uint64(buff_len - phead), 10))
 			}
 			buff_len -= phead
 			phead = 0
@@ -684,146 +781,25 @@ func (ne *net_event_driver) conn_read_data(fd uint32) {
 		phead = 0
 	}
 
-	ne.log_debug(fd, "read", "-----final phead:", strconv.FormatUint(uint64(phead), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
+	//log_debug(fd, "read", "-----final phead:", strconv.FormatUint(uint64(phead), 10), ",buff_len:", strconv.FormatUint(uint64(buff_len), 10))
 
 	conn.pack_head = phead
 	conn.buff_len = buff_len
 
-	//客户端关闭了连接 
-	if err != nil {
-
-		ne.Close(fd)
-
-		//网络连接异常
-		if err != io.EOF {
-			ne.log_error(err.Error())
-		}
-	}
-
+	return read_len, err
 }
 
-
-/* 
- * 把一个网络连接加入连接池, 返回的error已经被记录到 ErrorLog 中
- */
-func (ne *net_event_driver) new_conn (conn net.Conn) (uint32, error) {
-	new_fd, err := ne.new_sock_fd()
-	if err != nil {
-		ne.log_error(err.Error())
-		return 0, err
-	}
-
-	new_conn := &connect { sock: conn }
-	new_conn.r_unlock = make( chan bool )
-	new_conn.r_lock = make( chan bool )
-	new_conn.w_unlock = make( chan bool )
-	new_conn.w_lock = make( chan bool )
-	new_conn.buff = make([]byte, ne.ConnBuffSize)
-	new_conn.buff_len = 0
-	new_conn.buff_size = ne.ConnBuffSize
-	new_conn.pack_head = 0
-	new_conn.last_op_time = time.Now().Unix()
-	new_conn.pack_eof_num = 0
-	new_conn.state = CONN_RUNNING
-	new_conn.is_shutdown = false
-	new_conn.is_shutup = false
-	ne.conns[new_fd] = new_conn
-
-	 //启动读锁
-	 go func(){
-		for {
-			new_conn.r_lock <- true
-			_ = <-new_conn.r_unlock
-		}
-	 }()
-	 //启动写锁
-	 go func(){
-		 for {
-			 new_conn.w_lock <- true
-			 _ = <-new_conn.w_unlock
-		 }
-	 }()
-
-	// 调用 OnConn 回调函数
-	if ne.OnConn != nil {
-		if err = ne.OnConn(new_fd); err != nil {
-			ne.log_error(err.Error())
-		}
-	}
-	return new_fd, nil
-}
-
-/* 
- * 清理该连接在连接池里所占用的内存（不关闭该连接对应的socket), 返回的error已经被记录到 ErrorLog 中
- */
-func (ne *net_event_driver) clean_conn (fd uint32) error {
-	if _, exist := ne.conns[fd]; !exist {
-		return errors.New(ERR_BAD_FD)
-	}
-	delete(ne.conns, fd)
-	return nil
-}
-
-
-const	ERR_THR_SEND_DATA	=	"thr send data error"
-
-
-/* 
- * 处理连接
- */
-func (ne *net_event_driver) handle_conn(new_fd uint32) {
-	 var (
-		 err	error
-		 res	error
-	 )
-	 new_c := ne.conns[new_fd]
-	 conn := new_c.sock
-	 for {
-
-
-		 switch new_c.state {
-
-		 case CONN_RUNNING:
-			 if ! new_c.is_shutdown {
-				 ne.conn_read_data(new_fd)
-			 }
-
-		 case CONN_CLOSED:
-			 ne.clean_conn(new_fd)
-			 if err = conn.Close(); err != nil {
-				 ne.log_error(err.Error())
-			 }
-			 if ne.OnClose != nil {
-				 if res = ne.OnClose(new_fd); res != nil {
-					 ne.log_error(res.Error())
-				 }
-			 }
-			 return
-
-		 default:
-			 ne.log_error("wrong state", "handle_conn", strconv.FormatUint(uint64(new_fd), 10), strconv.FormatUint(uint64(new_c.state), 10))
-			 if err = ne.clean_conn(new_fd); err != nil {
-				 ne.log_error(err.Error())
-			 }
-			 if err = conn.Close(); err != nil {
-				 ne.log_error(err.Error())
-			 }
-			 break;
-
-
-		 }
-	 }
-
- }
-
-
-/* fetch package from buffer
+/* 从buffer中自动抓包
  *
  * @return	package_lentgh, int
  */
 func (c *connect) fetch_package (buff []byte) int {
-	var plen int
-	for _,peof := range c.pack_eof {
+	var (
+		plen int
+		i	uint8
+	)
+	for i = 0; i < c.pack_eof_num; i ++ {
+		peof := c.pack_eof[i]
 		if peof != nil {
 			plen = peof.fetch(buff)
 			if plen > 0 {
@@ -833,7 +809,6 @@ func (c *connect) fetch_package (buff []byte) int {
 	}
 	return -1
 }
-
 
 
 /**************************** 自动分包 ***********************************/
