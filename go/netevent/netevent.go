@@ -19,9 +19,9 @@ import	"io"
 import	"bytes"
 
 
-type netevent struct {
+type NetEvent struct {
 
-	/* 回调函数：返回的error只用于netevent的error_log*/
+	/* 回调函数：返回的error只用于NetEvent的error_log*/
 	OnRecv	func(uint32, []byte) error
 	OnClose	func(uint32) error
 	OnConn	func(uint32) error
@@ -122,8 +122,8 @@ const CFG_MAX_CONN_NUM = 65535
  *
  * @param	host_port, ip和端口用":"隔开, 格式:"*:8888"
  */
-func Init () *netevent {
-	ne := new(netevent)
+func Init () *NetEvent {
+	ne := new(NetEvent)
 
 	ne.MaxConnNum = CFG_MAX_CONN_NUM
 	ne.conns = make(map[uint32]*connect, ne.MaxConnNum)
@@ -147,7 +147,7 @@ func Init () *netevent {
  *
  * @param	host_port	string, 格式： "127.0.0.1:8888"
  */
-func (ne *netevent) Dial(host_port string) error {
+func (ne *NetEvent) Dial(host_port string) error {
 	var (
 		conn net.Conn
 		err	error
@@ -177,7 +177,7 @@ func (ne *netevent) Dial(host_port string) error {
  *
  * @param	host_port	string, 格式： "127.0.0.1:8888"
  */
-func (ne *netevent) Listen(host_port string) error {
+func (ne *NetEvent) Listen(host_port string) error {
 	var (
 		conn net.Conn
 		err	error
@@ -220,7 +220,7 @@ func (ne *netevent) Listen(host_port string) error {
  *
  * @param	host_port	string, 格式： "127.0.0.1:8888"
  */
-func (ne *netevent) Connect(host_port string) (uint32, error) {
+func (ne *NetEvent) Connect(host_port string) (uint32, error) {
 	var (
 		conn net.Conn
 		err	error
@@ -250,7 +250,7 @@ func (ne *netevent) Connect(host_port string) (uint32, error) {
 /* 向一个连接发送数据包
  *
  */
-func (ne *netevent) Send(fd uint32, pack []byte) (int, error) {
+func (ne *NetEvent) Send(fd uint32, pack []byte) (int, error) {
 	if c,exists := ne.conns[fd] ; exists {
 		return c.Send(pack)
 	}
@@ -261,7 +261,7 @@ func (ne *netevent) Send(fd uint32, pack []byte) (int, error) {
 /* 向一个连接发送数据包，并等待返回结果
  *
  */
-func (ne *netevent) Request(fd uint32, req []byte, resp []byte) (int, error) {
+func (ne *NetEvent) Request(fd uint32, req []byte, resp []byte) (int, error) {
 	if c,exists := ne.conns[fd] ; exists {
 		return c.Request(req, resp)
 	}
@@ -273,7 +273,7 @@ func (ne *netevent) Request(fd uint32, req []byte, resp []byte) (int, error) {
  *
  * @param	fd
  */
-func (ne *netevent) Close (fd uint32) error {
+func (ne *NetEvent) Close (fd uint32) error {
 	if _, exist := ne.conns[fd] ; !exist {
 		return errors.New("bad fd")
 	}
@@ -283,12 +283,12 @@ func (ne *netevent) Close (fd uint32) error {
 /* 在一个连接上设置自动分包规则
  * 该函数会先清除之前的所有分包规则，然后将目前的规则设置上去;
  * 从左往右，第一个到 PACK_EOF_MAX_NUM 个自动分包规则会被应用上，后面的丢弃；
- * 一个连接上可以有多个分包规则，从左往右数起，第一个先匹配上的规则将被应用上；如果所有规则遍历完之后仍得不到数据包，将返回“包未找到"的错误( error(netevent.ERR_PACK_NOT_FOUND) )
+ * 一个连接上可以有多个分包规则，从左往右数起，第一个先匹配上的规则将被应用上；如果所有规则遍历完之后仍得不到数据包，将返回“包未找到"的错误( error(NetEvent.ERR_PACK_NOT_FOUND) )
  * 
  * @param	fd
  * @param	pack_eof_rule
  */
-func (ne *netevent) SetPackEof (fd uint32, peof ... i_net_pack_eof) error {
+func (ne *NetEvent) SetPackEof (fd uint32, peof ... i_net_pack_eof) error {
 	return nil
 }
 
@@ -297,7 +297,7 @@ func (ne *netevent) SetPackEof (fd uint32, peof ... i_net_pack_eof) error {
  *
  * @param	fd
  */
-func (ne *netevent) CleanPackEof (fd uint32) error {
+func (ne *NetEvent) CleanPackEof (fd uint32) error {
 	return nil
 }
 
@@ -306,7 +306,7 @@ func (ne *netevent) CleanPackEof (fd uint32) error {
 
 /* 为一个连接启动守护 routine
 */
-func (ne *netevent) run_connect(fd uint32) error {
+func (ne *NetEvent) run_connect(fd uint32) error {
 	var (
 		c	*connect
 		exists	bool
@@ -350,7 +350,7 @@ func (ne *netevent) run_connect(fd uint32) error {
 
 /* 添加一个连接
  */
-func (ne *netevent) add_connect(conn net.Conn) (uint32, error) {
+func (ne *NetEvent) add_connect(conn net.Conn) (uint32, error) {
 	var (
 		new_fd	uint32
 		err	error
@@ -395,7 +395,7 @@ func (ne *netevent) add_connect(conn net.Conn) (uint32, error) {
  * 错误日志的格式是固定的：CHAT|2014-11-01 11:11:11|error|
  *
  */
-func (ne *netevent) log_error (msg ... string) {
+func (ne *NetEvent) log_error (msg ... string) {
 	now := time.Now()
 	line := "CHAT|" + now.Format("2006-01-02 15:04:05") + "|ERROR|" + strings.Join(msg, "|")
 
@@ -433,7 +433,7 @@ func (ne *netevent) log_error (msg ... string) {
 /* 记录debug日志，如果记录失败，debug信息将连同失败原因一起输出到stderr
  * debug日志的格式固定为：CHAT|2014-11-01 11:11:11|DEBUG|$fd|(recv|conn|close)|(read_bytes:$read_bytes)|(pack_bytes:$pack_bytes)
  */
-func (ne *netevent) log_debug (fd uint32, tag string, msg ... string) {
+func (ne *NetEvent) log_debug (fd uint32, tag string, msg ... string) {
 	if !ne.Debug {
 		return
 	}
@@ -473,12 +473,12 @@ func (ne *netevent) log_debug (fd uint32, tag string, msg ... string) {
 
 /* 将文件路径如 "/tmp/file.%Y%m%d.log" 转换成当前时间对应的 实际路径 ，如 "/tmp/file.20141107.log"
 */
-func (ne *netevent) tran_log_path(log_path string, now time.Time) (string, error) {
+func (ne *NetEvent) tran_log_path(log_path string, now time.Time) (string, error) {
 	return "/tmp/file.20141107.log", nil
 }
 
 /* 生成新的fd */
-func (ne *netevent) new_sock_fd() (uint32, error) {
+func (ne *NetEvent) new_sock_fd() (uint32, error) {
 	found := false
 	i := ne.last_fd + 1
 
@@ -610,7 +610,7 @@ func (c *connect) Close() error {
 /* 设置自动分包规则
  * 该函数会先清除之前的所有分包规则，然后将目前的规则设置上去;
  * 从左往右，第一个到 PACK_EOF_MAX_NUM 个自动分包规则会被应用上，后面的丢弃；
- * 一个连接上可以有多个分包规则，从左往右数起，第一个先匹配上的规则将被应用上；如果所有规则遍历完之后仍得不到数据包，将返回“包未找到"的错误( error(netevent.ERR_PACK_NOT_FOUND) )
+ * 一个连接上可以有多个分包规则，从左往右数起，第一个先匹配上的规则将被应用上；如果所有规则遍历完之后仍得不到数据包，将返回“包未找到"的错误( error(NetEvent.ERR_PACK_NOT_FOUND) )
  * 
  * @param	pack_eof_rule
  */
