@@ -1,51 +1,41 @@
 package	main
-import	"./netevent"
+import	"./ne"
 
 func main() {
-	ne := netevent.Init()
+	_ = ne.Init()
+	/*
 
 	// global functions 
-	ne.OnStart = func(){}
-	ne.OnShutdown = func(){}	//catch USR2 signal
+	ne.OnStart = func()error{ return nil }
+	ne.OnShutdown = func()error{ return nil }	//catch USR2 signal
 	ne.Host = "127.0.0.1"
 	ne.Run()
 	ne.Listen(9999, ne.SYNC | ne.ASYNC)
+	ne.Shutdown(9999)
+	ne.Close(fd)
 
 
 	// port functions 
-	ne.Port(9999).OnStart = func(){}
+	ne.Port(9999).OnStart = func()error{return nil}
 
-	ne.Port(9999).OnShutdown = func(){}
+	ne.Port(9999).OnShutdown = func()error{return nil}
 
-	ne.Port(9999).OnConn = func(fd uint32) {}
+	ne.Port(9999).OnConn = func(fd uint32)error{return nil}
 
-	ne.Port(9999).OnClose = func(fd uint32) {}
+	ne.Port(9999).OnClose = func(fd uint32)error{return nil}
 
-	ne.Port(9999).OnRecv = func(fd uint32) {}
+	ne.Port(9999).OnRecv = func(fd uint32)error{return nil}
 
 
 	// connect functions 
-	ne.Conn(fd).OnRecv = func(fd uint32, pack []byte){}
+	ne.Conn(fd).OnRecv = func(fd uint32, pack []byte)error{return nil}
 
-	ne.Conn(fd).OnClose = func(fd uint32){}
+	ne.Conn(fd).OnClose = func(fd uint32)error{return nil}
 
-	ne.Conn(fd).OnPackEof = func(stream []byte)(int, error){}
+	ne.Conn(fd).OnPackEof = func(stream []byte)(int, error){ return 0, nil }
 
 
 	ne.Conn(fd).Info()
-
-	conn_info {
-		SysFd
-		SysProcId
-		RemoteHost
-		RemotePort
-		LocalHost
-		LocalPort
-		SentBytes
-		RecvBytes
-		SentPacks
-		RecvPacks
-	}
 
 
 	ne.Conn(fd).Connect("127.0.0.1", 8888)
@@ -56,5 +46,6 @@ func main() {
 
 	ne.Conn(fd).Close()
 
+	*/
 
 }
