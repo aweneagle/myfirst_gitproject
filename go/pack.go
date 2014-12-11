@@ -127,7 +127,7 @@ func (ne *NetEvent) try_to_init() {
 					// 生成新的 NetConn
 					if c, exists := ne.conns[ne.new_fd]; !exists {
 						ne.conns[ne.new_fd] = &NetConn {
-							state :	NC_STATE_INIT,
+							state :	NC_STATE_PROTECTED,
 							is_watched : NC_UNWATCHED,
 							buff_head : 0,
 							buff_size : ne.ConnBuffSize,
@@ -144,7 +144,7 @@ func (ne *NetEvent) try_to_init() {
 						new_conn = ne.conns[ne.new_fd]
 						found = true
 					// 重用closed状态下的NetConn
-					} else if c.to_state( NC_STATE_INIT ) {
+					} else if c.to_state( NC_STATE_PROTECTED ) {
 						new_conn = c
 						found = true
 					}
@@ -539,10 +539,23 @@ type	NetConn	struct	{
 const	NC_STATE_CLOSED = 0
 const	NC_STATE_INIT = 2
 const	NC_STATE_CONNECTED = 4
+const	NC_STATE_PROTECTED = 8
 
 const	NC_UNWATCHED = 0
 const	NC_WATCHED = 1
 const	NC_RECVING = 2
+
+func	(nc *NetConn) state_to_init(){
+	nc.sent_bytes = 0
+	nc.recv_bytes = 0
+	nc.sent_pack_num = 0
+	nc.recv_pack_num = 0
+	nc.buff_len = 0
+	nc.buff_head = 0
+	nc.from_port = 0
+	nc.is_watched = NC_UNWATCHED
+	nc.is_closing = false
+}
 
 /* 转换状态
 *
@@ -555,25 +568,31 @@ func	(nc *NetConn) to_state(state int) bool {
 	connected_to_closed := strconv.FormatUint32(NC_STATE_CONNECTED, 10) + "->" + strconv.FormatUint32(NC_STATE_CLOSED, 10)
 	init_to_closed := strconv.FormatUint32(NC_STATE_INIT, 10) + "->" + strconv.FormatUint32(NC_STATE_CLOSED, 10)
 	switch swi {
+
+	////// `init` state circles 
 	case closed_to_init :
-		nc.sent_bytes = 0
-		nc.recv_bytes = 0
-		nc.sent_pack_num = 0
-		nc.recv_pack_num = 0
-		nc.buff_len = 0
-		nc.buff_head = 0
-		nc.from_port = 0
-		nc.is_watched = NC_UNWATCHED
-		nc.is_closing = false
-		break
+		nc.state_to_init()
+
 	case init_to_connected :
-		break
-	case connected_to_closed :
-		nc.is_closing = true
-		break
+		/* do nothing */
+
 	case init_to_closed :
 		nc.is_closing = true
-		break
+
+
+
+	/////// `protected` state circles 
+	case closed_to_protected :
+		nc.state_to_prot()
+
+	case protected_to_connected :
+		/* do nothing */
+
+
+
+	case connected_to_closed :
+		nc.is_closing = true
+
 	default:
 		return false
 	}
@@ -636,6 +655,7 @@ func	(nc *NetConn) Watch() error {
 		}
 	}
 	nc.OnClose(nc.fd)
+	nc.is_watched = NC_UNWATCHED
 	return nil
 }
 
@@ -775,6 +795,14 @@ func	(nc *NetConn) Recv(buff []byte) (int, error) {
 *		func (nc *NetConn) Close() (error)
 */
 func	(nc *NetConn) Close() error {
-	nc.is_closing = true
+	if nc.is_watched == NC_WATCHED {
+		nc.is_closing = true
+		return nil
+	} else {
+		if nc.to_state(NC_STATE_CLOSED) {
+			return nil
+		}
+		return errors.New("failed to Close conn")
+	}
 }
 
