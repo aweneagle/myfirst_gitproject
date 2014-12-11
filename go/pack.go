@@ -93,7 +93,7 @@ const	NE_STATE_RUNNING = 1
 
 func (ne *NetEvent) try_to_init() {
 	ne_state := ne.state
-	if ne.state != NE_STATE_SHUTDOWN {
+	if ne_state != NE_STATE_SHUTDOWN {
 		return
 	}
 	if !atomic.CompareAndSwapUint32(&ne.state, ne_state, NE_STATE_RUNNING) {
@@ -127,20 +127,12 @@ func (ne *NetEvent) try_to_init() {
 					// 生成新的 NetConn
 					if c, exists := ne.conns[ne.new_fd]; !exists {
 						ne.conns[ne.new_fd] = &NetConn {
-							state :	NC_STATE_PROTECTED,
-							is_watched : NC_UNWATCHED,
-							buff_head : 0,
+							state :	NC_STATE_CLOSED,
 							buff_size : ne.ConnBuffSize,
-							buff_len : 0,
-							sent_bytes : 0,
-							recv_bytes : 0,
-							sent_pack_num : 0,
-							recv_pack_num : 0,
-							from_port : 0,
-							is_closing : false,
 							fd : ne.new_fd,
 							buff : make([]byte, ne.ConnBuffSize),
 						}
+						ne.conns[ne.new_fd].to_state( NC_STATE_PROTECTED )
 						new_conn = ne.conns[ne.new_fd]
 						found = true
 					// 重用closed状态下的NetConn
@@ -536,10 +528,11 @@ type	NetConn	struct	{
 
 }
 
+/* 共可容纳10个不同的状态，见to_state()函数*/
 const	NC_STATE_CLOSED = 0
-const	NC_STATE_INIT = 2
-const	NC_STATE_CONNECTED = 4
-const	NC_STATE_PROTECTED = 8
+const	NC_STATE_INIT = 1
+const	NC_STATE_CONNECTED = 2
+const	NC_STATE_PROTECTED = 3
 
 const	NC_UNWATCHED = 0
 const	NC_WATCHED = 1
@@ -557,33 +550,47 @@ func	(nc *NetConn) state_to_init(){
 	nc.is_closing = false
 }
 
+func	(nc *NetConn) state_to_protected() {
+	nc.state_to_init()
+}
+
+func	(nc *NetConn) state_to_closed() {
+	nc.is_closing = true
+}
+
 /* 转换状态
 *
 */
 func	(nc *NetConn) to_state(state int) bool {
 	old_state := nc.state
-	swi := strconv.FormatUint32(old_state, 10) + "->" + strconv.FormatUint32(state, 10)
-	closed_to_init := strconv.FormatUint32(NC_STATE_CLOSED, 10) + "->" + strconv.FormatUint32(NC_STATE_INIT, 10)
-	init_to_connected := strconv.FormatUint32(NC_STATE_INIT, 10) + "->" + strconv.FormatUint32(NC_STATE_CONNECTED, 10)
-	connected_to_closed := strconv.FormatUint32(NC_STATE_CONNECTED, 10) + "->" + strconv.FormatUint32(NC_STATE_CLOSED, 10)
-	init_to_closed := strconv.FormatUint32(NC_STATE_INIT, 10) + "->" + strconv.FormatUint32(NC_STATE_CLOSED, 10)
+	swi := old_state * 10 + state
+	closed_to_init := NC_STATE_CLOSED * 10 + NC_STATE_INIT
+	init_to_connected := NC_STATE_INIT * 10 + NC_STATE_CONNECTED
+	connected_to_closed := NC_STATE_CONNECTED * 10 + NC_STATE_CLOSED
+	init_to_closed := NC_STATE_INIT * 10 + NC_STATE_CLOSED
+
+	closed_to_protected := NC_STATE_CLOSED * 10 + NC_STATE_PROTECTED
+	protected_to_connected := NC_STATE_PROTECTED * 10 + NC_STATE_CONNECTED
+
+	var state_func func() = nil
+
 	switch swi {
 
-	////// `init` state circles 
+	////// 来自 Conn(fd) 函数的 NetConn 状态变换
 	case closed_to_init :
-		nc.state_to_init()
+		state_func = nc.state_to_init
 
 	case init_to_connected :
 		/* do nothing */
 
 	case init_to_closed :
-		nc.is_closing = true
+		state_func = nc.state_to_closed
 
 
 
-	/////// `protected` state circles 
+	/////// 来自 NewConn() 函数的 NetConn 状态变换
 	case closed_to_protected :
-		nc.state_to_prot()
+		state_func = nc.state_to_protected
 
 	case protected_to_connected :
 		/* do nothing */
@@ -591,12 +598,20 @@ func	(nc *NetConn) to_state(state int) bool {
 
 
 	case connected_to_closed :
-		nc.is_closing = true
+		state_func = nc.state_to_closed
 
 	default:
 		return false
 	}
-	return atomic.CompareAndSwapUint32( &(nc.state), old_state, state)
+
+	if atomic.CompareAndSwapUint32( &nc.state, old_state, state) {
+		if state_func != nil {
+			state_func()
+		}
+		return true
+	} else {
+		return false
+	}
 }
 
 /* 连接远端服务器
