@@ -2,17 +2,21 @@
 *
 *	by awen, 2014.12.08
 */
-
-package "netevent"
+package main
 import	"net"
 import	"errors"
 import	"time"
 import	"sync/atomic"
+func main() {
+	ne := &NetEvent{}
+	ne.Port(9999).Listen("127.0.0.1")
+}
 
 ///////////////////////////////////////
 // NetEvent 
 //////////////////////////////////////
 type NetEvent struct {
+	state	uint32	//NE_STATE_SHUTDOWN, NE_STATE_RUNNING
 
 	/* 
 	* 连接池(包含所有连接)
@@ -78,21 +82,31 @@ type NetEvent struct {
 	return_port	chan	uint
 }
 
+const	NE_STATE_SHUTDOWN = 0
+const	NE_STATE_RUNNING = 1
+
 /* 初始化一个NetEvent 实例
 *	
 * 		func Init() (*NetEvent)
 *	
 */
 
-func Init() *NetEvent {
-	ne := &NetEvent{}
+func (ne *NetEvent) try_to_init() {
+	ne_state := ne.state
+	if ne.state != NE_STATE_SHUTDOWN {
+		return
+	}
+	if !atomic.CompareAndSwapUint32(&ne.state, ne_state, NE_STATE_RUNNING) {
+		return
+	}
+
 	ne.MaxConnNum = 65535
 	ne.ConnBuffSize = 1024
 	ne.new_fd = 0
 	ne.new_conn = make(chan bool)
 	ne.fd_conn = make(chan uint32)
 	ne.return_conn = make(chan *NetConn)
-	ne.full_fd = make(chan uint32)
+	ne.full_fd = make(chan bool)
 	ne.new_port = make(chan uint)
 	ne.return_port = make(chan uint)
 	/* 启动 创建新连接 服务 */
@@ -101,6 +115,7 @@ func Init() *NetEvent {
 			found	bool	=	false
 			fd	uint32	=	0
 			new_conn	*NetConn = nil
+			port	uint	=	0
 		)
 		for {
 			select {
@@ -123,7 +138,7 @@ func Init() *NetEvent {
 							recv_pack_num : 0,
 							from_port : 0,
 							is_closing : false,
-							fd : fd,
+							fd : ne.new_fd,
 							buff : make([]byte, ne.ConnBuffSize),
 						}
 						new_conn = ne.conns[ne.new_fd]
@@ -174,7 +189,7 @@ func Init() *NetEvent {
 				ne.return_conn <- ne.conns[fd]
 
 
-			case port := <-ne.new_port :
+			case port = <-ne.new_port :
 				if p, exists := ne.ports[port]; !exists {
 					ne.ports[port] = &NetPort{
 						ne : ne,
@@ -193,22 +208,13 @@ func Init() *NetEvent {
 }
 
 
-/* 启动一个NetEvent实例
-*	
-*		func (ne *NetEvent) Run() (err error)
-*	
-*/
-
-func (ne *NetEvent) Run() error {
-}
-
-
 /* 获取一个端口实例(NetPort), 如果该实例还不存在，会新建一个
 *	
 *		func (ne *NetEvent) Port(uint port_num) (port *NetPort)
 *	
 */
 func (ne *NetEvent) Port(port_num uint) (*NetPort) {
+	ne.try_to_init()
 	ne.new_port <- port_num
 	port_num <- ne.return_port
 	return ne.ports[port_num]
@@ -220,6 +226,7 @@ func (ne *NetEvent) Port(port_num uint) (*NetPort) {
 *		func (ne *NetEvent) Shutdown(port_num uint) 
 */
 func (ne *NetEvent) Shutdown(port_num uint) {
+	ne.try_to_init()
 	if p, exists := ne.ports[port_num]; exists {
 		if p != nil {
 			p.Shutdown()
@@ -233,6 +240,7 @@ func (ne *NetEvent) Shutdown(port_num uint) {
 *		func (ne *NetEvent) NewConn() (*NetConn, err error)
 */
 func (ne *NetEvent) NewConn() (*NetConn, error) {
+	ne.try_to_init()
 	ne.new_conn <- true
 	for {
 		select {
@@ -252,6 +260,7 @@ func (ne *NetEvent) NewConn() (*NetConn, error) {
 *		func (ne *NetEvent) Conn(uint32 fd) (conn *NetConn)
 */
 func (ne *NetEvent) Conn(fd uint32) (*NetConn) {
+	ne.try_to_init()
 	if fd >= ne.MaxConnNum {
 		return nil
 	}
@@ -266,6 +275,7 @@ func (ne *NetEvent) Conn(fd uint32) (*NetConn) {
 *		func (ne *NetEvent) Close(port_num uint32) (error) 
 */
 func (ne *NetEvent) Close(fd uint32) (error) {
+	ne.try_to_init()
 	if fd >= ne.MaxConnNum {
 		return errors.New("bad fd")
 	}
@@ -546,6 +556,15 @@ func	(nc *NetConn) to_state(state int) bool {
 	init_to_closed := strconv.FormatUint32(NC_STATE_INIT, 10) + "->" + strconv.FormatUint32(NC_STATE_CLOSED, 10)
 	switch swi {
 	case closed_to_init :
+		nc.sent_bytes = 0
+		nc.recv_bytes = 0
+		nc.sent_pack_num = 0
+		nc.recv_pack_num = 0
+		nc.buff_len = 0
+		nc.buff_head = 0
+		nc.from_port = 0
+		nc.is_watched = NC_UNWATCHED
+		nc.is_closing = false
 		break
 	case init_to_connected :
 		break
@@ -653,13 +672,15 @@ func	(nc *NetConn) read_pack() ([]byte, error) {
 		for {
 			buff_head = nc.buff_head
 			buff_len = nc.buff_len
-			plen, err = nc.OnPackEof(nc.buff[nc.buff_head : nc.buff_head + nc.buff_len])
+			if buff_len > 0 {
+				plen, err = nc.OnPackEof(nc.buff[nc.buff_head : nc.buff_head + nc.buff_len])
 
-			// 如果现有的buff中找到了数据包，直接返回
-			if err == nil && plen > 0 {
-				nc.buff_head += plen
-				nc.buff_len -= plen
-				return nc.buff[buff_head : plen + buff_head], nil
+				// 如果现有的buff中找到了数据包，直接返回
+				if err == nil && plen > 0 {
+					nc.buff_head += plen
+					nc.buff_len -= plen
+					return nc.buff[buff_head : plen + buff_head], nil
+				}
 			}
 
 			// 从socket中读数据进buffer
