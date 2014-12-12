@@ -54,7 +54,7 @@ type NetEvent struct {
 	/* 
 	* 请求一个新的NetConn
 	*/
-	new_conn	chan bool
+	new_conn	chan uint32	//新NetConn的初始状态
 
 	/* 
 	* 请求fd对应的NetConn
@@ -103,7 +103,7 @@ func (ne *NetEvent) try_to_init() {
 	ne.MaxConnNum = 65535
 	ne.ConnBuffSize = 1024
 	ne.new_fd = 0
-	ne.new_conn = make(chan bool)
+	ne.new_conn = make(chan uint32)
 	ne.fd_conn = make(chan uint32)
 	ne.return_conn = make(chan *NetConn)
 	ne.full_fd = make(chan bool)
@@ -115,11 +115,12 @@ func (ne *NetEvent) try_to_init() {
 			found	bool	=	false
 			fd	uint32	=	0
 			new_conn	*NetConn = nil
+			new_conn_st	uint32	=	0
 			port	uint	=	0
 		)
 		for {
 			select {
-			case	_ = <-ne.new_conn :
+			case	new_conn_st = <-ne.new_conn :
 				//找到可用的NetConn 或 生成新的 NetConn
 				last_fd := ne.new_fd
 				found = false
@@ -127,16 +128,15 @@ func (ne *NetEvent) try_to_init() {
 					// 生成新的 NetConn
 					if c, exists := ne.conns[ne.new_fd]; !exists {
 						ne.conns[ne.new_fd] = &NetConn {
-							state :	NC_STATE_CLOSED,
+							state :	new_conn_st,
 							buff_size : ne.ConnBuffSize,
 							fd : ne.new_fd,
 							buff : make([]byte, ne.ConnBuffSize),
 						}
-						ne.conns[ne.new_fd].to_state( NC_STATE_PROTECTED )
 						new_conn = ne.conns[ne.new_fd]
 						found = true
 					// 重用closed状态下的NetConn
-					} else if c.to_state( NC_STATE_PROTECTED ) {
+					} else if c.to_state( new_conn_st ) {
 						new_conn = c
 						found = true
 					}
@@ -164,7 +164,6 @@ func (ne *NetEvent) try_to_init() {
 				if c, exists := ne.conns[fd]; !exists {
 					ne.conns[fd] = &NetConn {
 						state :	NC_STATE_CLOSED,
-						is_watched : NC_UNWATCHED,
 						buff_len : 0,
 						buff_head : 0,
 						buff_size : ne.ConnBuffSize,
@@ -227,13 +226,30 @@ func (ne *NetEvent) Shutdown(port_num uint) {
 }
 
 
+/* 获取一个待监听的 *NetConn
+*
+*/
+func (ne *NetEvent) accept_conn() (*NetConn, error) {
+	ne.new_conn <- NC_STATE_TOWATCH
+	for {
+		select {
+		case c := <-ne.return_conn:
+			return c, nil
+
+		case _ = <-ne.full_fd:
+			return 0, errors.New("fd full")
+		}
+	}
+}
+
+
 /* 获取一个新的 *NetConn
 *
 *		func (ne *NetEvent) NewConn() (*NetConn, err error)
 */
 func (ne *NetEvent) NewConn() (*NetConn, error) {
 	ne.try_to_init()
-	ne.new_conn <- true
+	ne.new_conn <- NC_STATE_INIT
 	for {
 		select {
 		case c := <-ne.return_conn:
@@ -406,7 +422,9 @@ func	(np *NetPort) listen(host string) error {
 	}
 
 	np.state = NP_STATE_LISTENING
-	np.OnStart()
+	if np.OnStart != nil {
+		np.OnStart()
+	}
 	for !np.shutdown {
 		listener.SetDeadLine(time.Now().Add(-1 * time.Second))
 		//创建新连接
@@ -418,7 +436,7 @@ func	(np *NetPort) listen(host string) error {
 			continue
 		}
 
-		new_conn, err = np.ne.NewConn()
+		new_conn, err = np.ne.accept_conn()
 		if err != nil {
 			//fd 池已满，拒绝连接
 			conn.Close()
@@ -429,11 +447,12 @@ func	(np *NetPort) listen(host string) error {
 		new_conn.OnConn = np.OnConn
 		new_conn.OnRecv = np.OnRecv
 		new_conn.OnClose = np.OnClose
-		new_conn.to_state(NC_STATE_CONNECTED)
 		go new_conn.Watch()
 	}
 	np.state = NP_STATE_SHUTDOWN
-	np.OnShutdown()
+	if np.OnShutdown != nil {
+		np.OnShutdown()
+	}
 	return nil
 }
 
@@ -484,10 +503,6 @@ type	NetConn	struct	{
 	OnPackEof	func(stream	[]byte)(int, error)
 
 
-	/* 是否已经被监听
-	*/
-	is_watched	uint32	// 0 unwatched, 1 watched 
-
 
 	/* net 连接
 	*/
@@ -530,13 +545,15 @@ type	NetConn	struct	{
 
 /* 共可容纳10个不同的状态，见to_state()函数*/
 const	NC_STATE_CLOSED = 0
+// 未监听的连接状态
 const	NC_STATE_INIT = 1
 const	NC_STATE_CONNECTED = 2
-const	NC_STATE_PROTECTED = 3
+// 监听中的状态
+const	NC_STATE_TOWATCH = 3
+const	NC_STATE_WATCHING = 4
+// Recv阻塞状态
+const	NC_STATE_RECVING = 5
 
-const	NC_UNWATCHED = 0
-const	NC_WATCHED = 1
-const	NC_RECVING = 2
 
 func	(nc *NetConn) state_to_init(){
 	nc.sent_bytes = 0
@@ -546,7 +563,6 @@ func	(nc *NetConn) state_to_init(){
 	nc.buff_len = 0
 	nc.buff_head = 0
 	nc.from_port = 0
-	nc.is_watched = NC_UNWATCHED
 	nc.is_closing = false
 }
 
@@ -555,50 +571,50 @@ func	(nc *NetConn) state_to_protected() {
 }
 
 func	(nc *NetConn) state_to_closed() {
-	nc.is_closing = true
 }
 
 /* 转换状态
 *
 */
-func	(nc *NetConn) to_state(state int) bool {
+func	(nc *NetConn) to_state(state uint32) bool {
 	old_state := nc.state
 	swi := old_state * 10 + state
 	closed_to_init := NC_STATE_CLOSED * 10 + NC_STATE_INIT
 	init_to_connected := NC_STATE_INIT * 10 + NC_STATE_CONNECTED
 	connected_to_closed := NC_STATE_CONNECTED * 10 + NC_STATE_CLOSED
-	init_to_closed := NC_STATE_INIT * 10 + NC_STATE_CLOSED
 
-	closed_to_protected := NC_STATE_CLOSED * 10 + NC_STATE_PROTECTED
-	protected_to_connected := NC_STATE_PROTECTED * 10 + NC_STATE_CONNECTED
+	closed_to_towatch := NC_STATE_CLOSED * 10 + NC_STATE_TOWATCH
+	towatch_to_watching := NC_STATE_TOWATCH * 10 + NC_STATE_WATCHING
+	watching_to_closed := NC_STATE_WATCHING * 10 + NC_STATE_CLOSED
+
+	connected_to_recving := NC_STATE_CONNECTED * 10 + NC_STATE_RECVING
+	recving_to_connected := NC_STATE_RECVING * 10 + NC_STATE_CONNECTED
+
 
 	var state_func func() = nil
 
 	switch swi {
 
-	////// 来自 Conn(fd) 函数的 NetConn 状态变换
+	////// 未监听的连接状态转换
 	case closed_to_init :
 		state_func = nc.state_to_init
-
 	case init_to_connected :
 		/* do nothing */
-
-	case init_to_closed :
-		state_func = nc.state_to_closed
-
-
-
-	/////// 来自 NewConn() 函数的 NetConn 状态变换
-	case closed_to_protected :
-		state_func = nc.state_to_protected
-
-	case protected_to_connected :
-		/* do nothing */
-
-
-
 	case connected_to_closed :
 		state_func = nc.state_to_closed
+
+	////// 监听下的连接状态转换
+	case closed_to_towatch :
+	case towatch_to_watching :
+	case watching_to_close :
+		/* do nothing */
+
+	////// 从未监听到监听状态的转换
+	case connected_to_watching :
+
+	/////// recving阻塞状态 <-> connected状态
+	case recving_to_connected :
+	case connected_to_recving :
 
 	default:
 		return false
@@ -626,6 +642,7 @@ func	(nc *NetConn) Connect(host string, port uint) error {
 		)
 		conn, err = net.Dial(host + ":" + strconv.FormatUint(port, 10))
 		if err != nil {
+			nc.to_state(NC_STATE_CONNECTED)
 			nc.to_state(NC_STATE_CLOSED)
 			return err
 		}
@@ -645,33 +662,34 @@ func	(nc *NetConn) Connect(host string, port uint) error {
 *		func (nc *NetConn) Watch() 
 */
 func	(nc *NetConn) Watch() error {
-	if nc.is_closing || nc.state != NC_STATE_CONNECTED {
+	if !nc.to_state(NC_STATE_WATCHING) {
 		return 0, errors.New("conn wrong state")
 	}
-	nc_w_st := nc.is_watched
-	if nc_w_st != NC_UNWATCHED {
-		return errors.New("wrong watch state")
+	if nc.OnConn != nil {
+		nc.OnConn(nc.fd)
 	}
-	if !atomic.CompareAndSwapUint32(&nc.is_watched, nc_w_st, NC_WATCHED) {
-		return errors.New("failed to watch")
-	}
-	nc.OnConn(nc.fd)
 	for !nc.is_closing {
 		bytes, err := nc.read_pack()
 		if err == nil {
-			nc.OnRecv(nc.fd, bytes)
+			if nc.OnRecv != nil {
+				nc.OnRecv(nc.fd, bytes)
+			}
 			nc.recv_pack_num += 1
 		} else {
 			if len(bytes) > 0 {
-				nc.OnRecv(nc.fd, bytes)
+				if nc.OnRecv != nil {
+					nc.OnRecv(nc.fd, bytes)
+				}
 				nc.recv_pack_num += 1
 			}
-			nc.to_state(NC_STATE_CLOSED)
 		}
 	}
-	nc.OnClose(nc.fd)
-	nc.is_watched = NC_UNWATCHED
-	return nil
+	nc.to_state(NC_STATE_CLOSED)
+	err := nc.sock.Close()
+	if nc.OnClose != nil {
+		nc.OnClose(nc.fd)
+	}
+	return err
 }
 
 /* 读取数据包
@@ -772,7 +790,7 @@ func	(nc *NetConn) Info() (map[string]string, error) {
 *		func (nc *NetConn) Send(data []byte) (sent_bytes int, err error)
 */
 func	(nc *NetConn) Send(data []byte) (int, error) {
-	if nc.is_closing || nc.state != NC_STATE_CONNECTED {
+	if nc.state != NC_STATE_CONNECTED || nc.state != NC_STATE_WATCHING || nc.state == NC_STATE_WATCHING && nc.is_closing {
 		return 0, errors.New("conn wrong state")
 	}
 	sent_bytes, err := nc.sock.Send(data)
@@ -787,20 +805,13 @@ func	(nc *NetConn) Send(data []byte) (int, error) {
 *		func (nc *NetConn) Recv(buff []byte) (recv_bytes int, err error) 
 */
 func	(nc *NetConn) Recv(buff []byte) (int, error) {
-	if nc.is_closing || nc.state != NC_STATE_CONNECTED {
+	if !nc.to_state(NC_STATE_RECVING) {
 		return 0, errors.New("conn wrong state")
-	}
-	nc_w_st := nc.is_watched
-	if nc_w_st != NC_UNWATCHED {
-		return 0, errors.New("conn wrong watch")
-	}
-	if !atomic.CompareAndSwapUint32(&nc.is_watched, nc_w_st, NC_RECVING) {
-		return 0, errors.New("conn failed recving")
 	}
 	buff_len, err := nc.sock.Read(buff)
 	nc.recv_bytes += buff_len
 	nc.recv_pack_num += 1
-	nc.is_watched = NC_UNWATCHED
+	nc.to_state(NC_STATE_CONNECTED)
 	return buff_len, err
 }
 
@@ -810,12 +821,12 @@ func	(nc *NetConn) Recv(buff []byte) (int, error) {
 *		func (nc *NetConn) Close() (error)
 */
 func	(nc *NetConn) Close() error {
-	if nc.is_watched == NC_WATCHED {
+	if nc.state == NC_STATE_TOWATCH || nc.state == NC_STATE_WATCHING {
 		nc.is_closing = true
 		return nil
 	} else {
 		if nc.to_state(NC_STATE_CLOSED) {
-			return nil
+			return nc.sock.Close()
 		}
 		return errors.New("failed to Close conn")
 	}
