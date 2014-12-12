@@ -3,25 +3,20 @@ import	"./netevent"
 import	"fmt"
 
 func main() {
-	n := netevent.Init()
-	n.ConnBuffSize = 256
-	n.Debug = true;
-	n.OnConn = func(fd uint32) error {
-		fmt.Println("connect connect:", fd)
-		n.SetPackEof(fd, &netevent.PackEofHttpGet{}, &netevent.PackEofHttpPost{})
-		return nil
-	}
-	n.OnClose = func(fd uint32) error {
-		fmt.Println("connect closed:", fd)
-		return nil
-	}
-	n.OnRecv = func(fd uint32, pack []byte) error {
-		fmt.Println(string(pack))
-		n.Send(fd, pack)
-		return nil
+	ne := &netevent.NetEvent{}
+	ne.Port(9999).OnConn = func(fd uint32) {
+		fmt.Println("connected:", fd)
 	}
 
-	n.Listen("127.0.0.1:8888")
+	ne.Port(9999).OnRecv = func(fd uint32, data []byte) {
+		fmt.Println("received:", string(data))
+		fmt.Println("response ...")
+		ne.Conn(fd).Send([]byte("data received succ ...!"))
+	}
 
+	ne.Port(9999).OnClose = func(fd uint32) {
+		fmt.Println("closed:", fd)
+	}
 
+	ne.Port(9999).Listen("127.0.0.1")
 }
