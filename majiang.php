@@ -11,7 +11,7 @@ $cards = ['df','df','hz','hz','hz'];
 $b->ck($cards);
 
 //普通胡
-$cards = ['df','df','2w','3w','4w'];
+$cards = ['df','df','7w','8w','9w', '1t','2t','3t'];
 $b->ck($cards);
 
 //顺子
