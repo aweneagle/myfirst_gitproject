@@ -14,6 +14,12 @@ $b->ck($cards);
 $cards = ['df','df','7w','8w','9w', '1t','2t','3t'];
 $b->ck($cards);
 
+//诈胡
+$cards = ['df','df','7w','8w','9w', '1t','2t','3t','4t'];
+$b->ck($cards);
+$cards = ['df','df','7w','8w','9w', '1t','2t','4t'];
+$b->ck($cards);
+
 //顺子
 $cards = ['df','df','2w','3w','3w','4w','4w','5w'];
 $b->ck($cards);
