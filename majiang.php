@@ -1,10 +1,6 @@
 <?php
 namespace App;
 
-$m = new Majiang;
-$input = array_filter(explode(",", $argv[1]));
-$m->ck($input);
-
 class Majiang
 {
 
