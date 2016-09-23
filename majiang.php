@@ -1,4 +1,5 @@
 <?php
+namespace App;
 
 class Majiang
 {
@@ -58,22 +59,62 @@ class Majiang
      * $SUCC, 胡牌模式
      *
      * 牌体数目要求：
-     * 	COUNT_NO,  没有
+     * 	COUNT_NONE,  没有
      * 	COUNT_ONE,  有1副
      * 	COUNT_MUST,  有1 ~ n副
      * 	COUNT_MAY,  有0 ~ m副
      */
-    const COUNT_NO = 0;
+    const COUNT_NONE = 0;
     const COUNT_ONE = 1;
     const COUNT_MUST = 2;
     const COUNT_MAY = 3;
 
     private $SUCC = [
-        //11, 123
-        //11, 111
-        //11, 123, 111
-        //11
-        ["1*2" => self::COUNT_ONE, "1*3" => self::COUNT_MAY, "123" => self::COUNT_MAY, "1*4" => self::COUNT_NO]
+        /**
+         * 'rule'   牌型规则
+         * 'weight' 番数
+         * 'name'   牌型名称
+         * 'num'    (可选)牌数要求
+         * 'must'   (可选)对应牌体的数量, 例如: ['1*4' => 1] 表示有且只有一个豪华
+         */
+
+        [
+            'rule' => ["1*2" => self::COUNT_ONE, "1*3" => self::COUNT_MAY, "123" => self::COUNT_MUST, "1*4" => self::COUNT_NONE],
+            'weight' => 1,
+            'name' => "普通胡",
+        ],
+        [
+            'rule' => ["1*2" => self::COUNT_ONE, "1*3" => self::COUNT_MAY, "123" => self::COUNT_NONE, "1*4" => self::COUNT_NONE],
+            'weight' => 2,
+            'name' => "大对碰",
+        ],
+        [
+            'rule' => ["1*2" => self::COUNT_MUST, "1*3" => self::COUNT_NONE, "123" => self::COUNT_NONE, "1*4" => self::COUNT_NONE],
+            'weight' => 2,
+            'name' => "七姐",
+            'num' => 14
+        ],
+        [
+            'rule' => ["1*2" => self::COUNT_MUST, "1*3" => self::COUNT_NONE, "123" => self::COUNT_NONE, "1*4" => self::COUNT_MUST],
+            'weight' => 3,
+            'name' => "豪华七姐",
+            'num' => 14,
+            'must' => ["1*4" => 1]
+        ],
+        [
+            'rule' => ["1*2" => self::COUNT_MUST, "1*3" => self::COUNT_NONE, "123" => self::COUNT_NONE, "1*4" => self::COUNT_MUST],
+            'weight' => 4,
+            'name' => "双豪华七姐",
+            'num' => 14,
+            'must' => ["1*4" => 2]
+        ],
+        [
+            'rule' => ["1*2" => self::COUNT_MUST, "1*3" => self::COUNT_NONE, "123" => self::COUNT_NONE, "1*4" => self::COUNT_MUST],
+            'weight' => 5,
+            'name' => "三豪华七姐",
+            'num' => 14,
+            'must' => ["1*4" => 3]
+        ],
     ];
 
     /**
@@ -90,12 +131,23 @@ class Majiang
                     @$count[$group['type']] += 1;
                 }
 
-                foreach ($this->SUCC as $list) {
+                foreach ($this->SUCC as $rule_info) {
 
                     // 该牌型 $body 是否符合 该规则 $list?
                     $match = true;
+                    $must = $num = false;
+                    if (isset($rule_info['must'])) {
+                        $must = $rule_info['must'];
+                    }
+                    if (isset($rule_info['num'])) {
+                        $num = $rule_info['num'];
+                    }
 
-                    foreach ($list as $type => $rule) {
+                    if ($num && $num != count($codes)) {
+                        continue;
+                    }
+
+                    foreach ($rule_info['rule'] as $type => $rule) {
                         switch ($rule) {
                         case self::COUNT_ONE:
                             if (!isset($count[$type]) || $count[$type] != 1) {
@@ -104,12 +156,14 @@ class Majiang
                             break;
 
                         case self::COUNT_MUST:
-                            if (!isset($count[$type])) {
+                            if (!isset($count[$type])
+                                || isset($must[$type]) && $must[$type] != $count[$type]
+                            ) {
                                 $match = false;
                             }
                             break;
 
-                        case self::COUNT_NO:
+                        case self::COUNT_NONE:
                             if (isset($count[$type])) {
                                 $match = false;
                             }
