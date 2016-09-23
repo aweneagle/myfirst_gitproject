@@ -1,6 +1,10 @@
 <?php
 namespace App;
 
+$m = new Majiang;
+$input = array_filter(explode(",", $argv[1]));
+$m->ck($input);
+
 class Majiang
 {
 
@@ -122,10 +126,10 @@ class Majiang
      */
     public function findSuccPatterns($codes, array &$patterns = array())
     {
-        $this->pattern($codes, $patterns);
-        $succ = [];
-        if ($patterns) {
-            foreach ($patterns as $body) {
+        $all_patterns = array();
+        $this->pattern($codes, $all_patterns);
+        if ($all_patterns) {
+            foreach ($all_patterns as $body) {
                 $count = [];
                 foreach ($body as $group) {
                     @$count[$group['type']] += 1;
@@ -176,12 +180,14 @@ class Majiang
                     }
 
                     if ($match) {
-                        $succ[] = $body;
+                        $patterns[] = [
+                            'cards' => $body, 
+                            'rule' => $rule_info,
+                        ];
                     }
                 }
             }
         }
-        $patterns = $succ;
     }
 
     /**
@@ -195,7 +201,7 @@ class Majiang
      * 搜索出所有可能的匹配模式
      * @return   false, 模式匹配出错，直接返回; true, 模式匹配成功
      */
-    public function pattern($codes, array &$patterns = array(), $curr_chain=array())
+    private function pattern($codes, array &$patterns = array(), $curr_chain=array())
     {
         $possible = [
             "1*4" => 4,     //4张牌, 豪华
@@ -238,11 +244,20 @@ class Majiang
 
     }
 
+    private function getCards($codes)
+    {
+        $map = array_flip($this->codes);
+        $cards = [];
+        foreach ($codes as $c) {
+            $cards[] = $map[$c];
+        }
+        return $cards;
+    }
 
     /**
      * getCardsCode 将牌名映射成数字编码
      */
-    public function getCardsCodes($cards)
+    private function getCardsCodes($cards)
     {
         $codes = $this->codes;
         $return = array();
@@ -346,16 +361,19 @@ class Majiang
         $patterns = array();
         $this->findSuccPatterns($this->getCardsCodes($cards), $patterns);
         echo $this->lk;
-        echo "!!!  " . implode(" ",$cards) . " !!!" . $this->lk;
+        echo "  " . implode(" ",$cards) . " " . $this->lk;
         if ($patterns) {
             global $argv;
-            echo "!!!  此牌能胡的方式有: !!!" . $this->lk;
+            echo "此牌能胡的方式有: " . $this->lk;
             foreach ($patterns as $plist) {
                 $list = [];
-                foreach ($plist as $p) {
-                    $list[] = $p['type'];
+                echo "[牌型]" . $plist['rule']['name'] . $this->lk;
+                echo "[番数]" . $plist['rule']['weight'] . $this->lk;
+                foreach ($plist['cards'] as $p) {
+                    $list[] = implode(" ", $this->getCards($p['cards']));
                 }
-                echo "|||   " . implode(",", $list) . "    |||" . $this->lk;
+                echo "[牌体]" . implode(", ", $list) . " " . $this->lk;
+                echo $this->lk;
             }
         } else {
             echo "!!!  该牌不能胡 !!!" . $this->lk;
