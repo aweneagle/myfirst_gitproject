@@ -1,0 +1,93 @@
+#########################################  请求 store ############################################
+
+[name]
+store
+
+[http]
+https://play.google.com/store
+GET
+HTTP/2.0
+
+[headers]
+Host: play.google.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Upgrade-Insecure-Requests: 1
+
+## 获取两个cookie
+## Cookie NID
+## Cookie PLAY_PREFS
+
+
+#########################################  请求 S cookie ############################################
+
+[name]
+SCookie
+
+[http]
+https://payments.google.com/payments/v4/js/integrator.js?ss=n
+GET
+HTTP/2.0
+
+[headers]
+Host: payments.google.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
+Accept: */*
+Accept-Language: zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Referer: https://play.google.com/store
+## 从前面的请求中获取, 格式为 {$'cookie名字'}
+Cookie: NID={$cookie.NID}
+
+## 获取一个cookie
+## Cookie[S]
+
+
+#########################################  请求 分类 ############################################
+
+[name]
+Category
+
+[http]
+https://play.google.com/store/apps/category/{%CATEGORY%}
+GET
+HTTP/2.0
+
+[headers]
+Host: play.google.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Cookie: PLAY_PREFS={$cookie.PLAY_PREFS}; NID={$cookie.NID}; S={$cookie.S}
+Upgrade-Insecure-Requests: 1
+
+
+#########################################  请求 topselling_free ############################################
+
+[name]
+topselling_free
+
+[http]
+https://play.google.com/store/apps/category/{%CATEGORY%}/collection/topselling_free?authuser=0
+POST
+HTTP/2.0
+
+[headers]
+Host: play.google.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/x-www-form-urlencoded;charset=utf-8
+Referer: https://play.google.com/store/apps/category/{%CATEGORY%}
+Cookie: PLAY_PREFS={$cookie.PLAY_PREFS}; NID={$cookie.NID}; S={$cookie.S}
+
+[post_fields]
+start={%start%}
+num={%num%}
+numChildren=0
+ipf=1
+xhr=1
