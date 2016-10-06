@@ -1,7 +1,9 @@
 <?php
 require "./simple_html_dom.php";
 
-var_dump(run());
+$c = fetch_categories(file_get_contents("./category.html"));
+var_dump($c);
+//var_dump(run());
 die;
 
 //$info = fetch_packageinfo("@./category.html", $finished);
@@ -70,12 +72,29 @@ function run()
 //file_put_contents("./topselling.html", $b->response["body"]);
 //print_res($b);
 		
+function fetch_categories($page)
+{
+	$html = str_get_html($page);
+	if (!$html) {
+		return false;
+	}
+	if (!$links = $html->find("a.child-submenu-link")) {
+		return false;
+	}
+
+	$categories = [];
+	foreach ($links as $a) {
+		$href = $a->getAttribute("href");
+		$categories[] = [
+			'href' =>  $href,
+			'category' => substr($href, strrpos($href, "/") + 1),
+			];
+	}
+	return $categories;
+}
 
 function fetch_packageinfo($page)
 {
-	if (strpos($page, "@") === 0) {
-		$page = file_get_contents(substr($page, 1));
-	}
 	$html = str_get_html($page);
 	if (!$html) {
 		return false;
