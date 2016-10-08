@@ -8,7 +8,7 @@ https://play.google.com/store
 GET
 HTTP/2.0
 
-[headers]
+[header]
 Host: play.google.com
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
@@ -31,7 +31,7 @@ https://payments.google.com/payments/v4/js/integrator.js?ss=n
 GET
 HTTP/2.0
 
-[headers]
+[header]
 Host: payments.google.com
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
 Accept: */*
@@ -55,7 +55,7 @@ https://play.google.com/store/apps/category/{%CATEGORY%}
 GET
 HTTP/2.0
 
-[headers]
+[header]
 Host: play.google.com
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
@@ -75,7 +75,7 @@ https://play.google.com/store/apps/category/{%CATEGORY%}/collection/topselling_f
 POST
 HTTP/2.0
 
-[headers]
+[header]
 Host: play.google.com
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:49.0) Gecko/20100101 Firefox/49.0
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
