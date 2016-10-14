@@ -2,7 +2,7 @@
 /*
  *  .env        环境配置
  *  .consts     常量配置   
- *  config/     配置
+ *  config/     配置(该配置不应该纳入git管理)
  *      database.php    数据库
  *      cache.php       缓存
  *      queue.php       队列
@@ -24,6 +24,16 @@
  *  middleWare/    中间件类
  *
  */
+
+/*
+ * 访问配置
+ */
+Env("key");
+conf()->get("option.key");
+conf()->set("option.key", "value"); //php config "option.key" "value"
+conf("127.0.0.1")->set("option.key", "value");
+
+
 /*
  * io访问
  */
