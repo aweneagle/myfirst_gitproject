@@ -180,6 +180,76 @@ class Spider
     private $history = [];
 
     /*
+     * @param  $urls = [
+     *      [
+     *          "url" => null,
+     *          "method" => "GET",
+     *          "header" => [
+     *              ...
+     *          ],
+     *          "post_fields" => [
+     *              ...
+     *          ],
+     *          "curl_options" => [
+     *              ...
+     *          ]
+     *      ],
+     *      ...
+     *  ]
+     */
+    public function request($urls = []) {
+        $curl_pool = [];
+        foreach ($urls as $u) {
+            $h = curl_init();
+            if ($h) {
+                $this->init_curl($h, $u);
+                $curl_pool[$u] = $h;
+            }
+        }
+
+        $mh = curl_multi_init();
+        $this->multi_curl($mh, $curl_pool);
+        foreach ($curl_pool as $u => $h) {
+            $content = curl_multi_getcontent($h);
+            $this->handle_content($u, $content, $h);
+        }
+
+        foreach ($curl_pool as $u => $h) {
+            curl_close($h);
+        }
+        curl_multi_close($mh);
+    }
+
+    private function init_curl($ch, $url_info)
+    {
+        // 根据method设置 请求方法
+        // 根据encoding 设置 curl
+        // 设置postfield
+        
+        /* 请求头 */
+        // 拼接cookie
+        // 设置content length
+        $options = [
+            CURLOPT_URL => $url_info["url"],
+            CURLOPT_CUSTOMREQUEST => "DELETE"
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_HEADER => 1,
+        ];
+
+        curl_setopt_array($ch, $options);
+    }
+
+    private function handle_content($url, $content, $curl_handle)
+    {
+        //如果content === false, 打error日志
+        //从curl_handle取请求头的size
+        //  根据size, 取出header
+        //  根据size, 取出body
+        //
+        //  根据header, 取出code, httpversion
+    }
+
+    /*
      * run() 函数以一定数量的url为入口, 自动爬取页面
      *
      */
