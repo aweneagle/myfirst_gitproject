@@ -146,7 +146,6 @@ class ES
     public function where($field, $op, $value)
     {
         $this->try_to_switch_context("filter", "must");
-
         $this->try_to_push_context("filter", "where");
         $filter = [];
         switch ($op) {
@@ -228,7 +227,6 @@ class ES
     public function match($field, $keywords, $boost = 1)
     {
         $this->try_to_switch_context("query", "should");
-
         $this->try_to_push_context("query", "match");
         if ($boost == 1) {
             $condition = $keywords;
@@ -236,7 +234,7 @@ class ES
             $condition = ["query" => $keywords, "boost" => $boost];
         }
         $query = [
-            "match" => [$field => $keywords]
+            "match" => [$field => $condition]
         ];
         $this->cache[] = $query;
         $this->pop_context();
@@ -253,7 +251,7 @@ class ES
      */
     public function sort($field, $order = "desc")
     {
-        $this->sort[$field] = ["order" => $order];
+        $this->sort[] = [$field => ["order" => $order]];
         return $this;
     }
 
@@ -339,17 +337,36 @@ class ES
         return $query[0];
     }
 
+	private function merge_bool($merge_from, $merge_into)
+	{
+		if (isset($merge_from['bool'])) {
+			foreach ($merge_from['bool'] as $bool => $info) {
+				if (!isset($merge_into['bool'][$bool])) {
+					$merge_into['bool'][$bool] = [];
+				}
+				$merge_into['bool'][$bool] = array_merge($merge_into['bool'][$bool], $info);
+			}
+		}
+		return $merge_into;
+	}
+
     private function pop_context()
     {
         $this->context_level -= 1;
         if ($this->context_level == 0) {
             switch ($this->context) {
             case "query":
-                $this->query = $this->build_query_from_cache($this->cache);
+				$this->query = $this->merge_bool(
+					$this->build_query_from_cache($this->cache), 
+					$this->query
+				);
                 break;
 
             case "filter":
-                $this->filter = $this->build_query_from_cache($this->cache);
+				$this->filter = $this->merge_bool(
+					$this->build_query_from_cache($this->cache, $this->filter),
+					$this->filter
+				);
                 break;
             }
 
@@ -382,8 +399,9 @@ class ES
     private function try_to_switch_context($to_context, $bool)
     {
         $curr_ctx = $this->context;
-        if ($curr_ctx != "*" && $curr_ctx != $to_context && $this->context_level != 0) {
+        if ($curr_ctx != "*" && $curr_ctx != $to_context && $curr_ctx != null) {
             $this->after();
+			$this->before($bool);
         }
         if ($curr_ctx == null) {
             $this->before($bool);

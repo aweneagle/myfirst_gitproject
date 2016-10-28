@@ -3,15 +3,8 @@ use PHPUnit\Framework\TestCase;
 require "./ES.php";
 class ESTest extends TestCase
 {
-
-    public function testShould()
-    {
-        $this->testBool("should");
-        $this->testFilterAndQueryBool("should");
-    }
-
-    public function testDefault()
-    {
+	public function testDefault()
+	{
         /* where 默认是在 must 子句中 */
         $es = new ES;
         $es->where("price", ">=", 10);
@@ -38,8 +31,43 @@ class ESTest extends TestCase
 
         /* where 和 match 并存*/
         $es = new ES;
+		$es->where("age", ">=", 2);
+        $es->match("name", "es");
+        $query1 = $es->to_query();
+
+        $es = new ES;
+        $es->must(function($es) {
+            $es->where("age", ">=", 2);
+        });
+        $es->should(function($es) {
+            $es->match("name", "es");
+        });
+        $query2 = $es->to_query();
+        $this->assertEquals($query1, $query2);
+
+
+        /* where 和 match 并存*/
+        $es = new ES;
+        $es->match("name", "es")
+		   ->where("age", ">=", 2);
+        $query1 = $es->to_query();
+
+        $es = new ES;
+        $es->should(function($es) {
+            $es->match("name", "es");
+        });
+        $es->must(function($es) {
+            $es->where("age", ">=", 2);
+        });
+        $query2 = $es->to_query();
+        $this->assertEquals($query1, $query2);
+
+
+        /* where 和 match 并存*/
+        $es = new ES;
         $es->where("price", ">=", 10)
-           ->match("name", "es");
+           ->match("name", "es")
+		   ->where("age", ">=", 2);
         $query1 = $es->to_query();
 
         $es = new ES;
@@ -49,22 +77,38 @@ class ESTest extends TestCase
         $es->should(function($es) {
             $es->match("name", "es");
         });
+        $es->must(function($es) {
+            $es->where("age", ">=", 2);
+        });
         $query2 = $es->to_query();
         $this->assertEquals($query1, $query2);
 
+	}
+
+	public function testMergeBool()
+	{
+		$this->mergeBool("must");
+		$this->mergeBool("must_not");
+		$this->mergeBool("should");
+	}
+	
+    public function testShould()
+    {
+        $this->boolTest("should");
+        $this->filterAndQueryBoolTest("should");
     }
 
     public function testMust()
     {
-        $this->testBool("must");
-        $this->testFilterAndQueryBool("must");
+        $this->boolTest("must");
+        $this->filterAndQueryBoolTest("must");
 
     }
 
     public function testMustNot()
     {
-        $this->testBool("must_not");
-        $this->testFilterAndQueryBool("must_not");
+        $this->boolTest("must_not");
+        $this->filterAndQueryBoolTest("must_not");
     }
 
     public function testSort()
@@ -86,43 +130,43 @@ class ESTest extends TestCase
 
     public function testQuery()
     {
-        $this->testQueryBool("should", "must", "should");
-        $this->testQueryBool("should", "must", "must");
-        $this->testQueryBool("should", "must", "must_not");
+        $this->queryBoolTest("should", "must", "should");
+        $this->queryBoolTest("should", "must", "must");
+        $this->queryBoolTest("should", "must", "must_not");
 
-        $this->testQueryBool("must", "should", "should");
-        $this->testQueryBool("must", "should", "must");
-        $this->testQueryBool("must", "should", "must_not");
+        $this->queryBoolTest("must", "should", "should");
+        $this->queryBoolTest("must", "should", "must");
+        $this->queryBoolTest("must", "should", "must_not");
 
-        $this->testQueryBool("must_not", "should", "should");
-        $this->testQueryBool("must_not", "should", "must");
-        $this->testQueryBool("must_not", "should", "must_not");
+        $this->queryBoolTest("must_not", "should", "should");
+        $this->queryBoolTest("must_not", "should", "must");
+        $this->queryBoolTest("must_not", "should", "must_not");
 
-        $this->testQueryBool("must_not", "must", "should");
-        $this->testQueryBool("must_not", "must", "must");
-        $this->testQueryBool("must_not", "must", "must_not");
+        $this->queryBoolTest("must_not", "must", "should");
+        $this->queryBoolTest("must_not", "must", "must");
+        $this->queryBoolTest("must_not", "must", "must_not");
     }
 
     public function testFilter()
     {
-        $this->testFilterBool("should", "must", "should");
-        $this->testFilterBool("should", "must", "must");
-        $this->testFilterBool("should", "must", "must_not");
+        $this->filterBoolTest("should", "must", "should");
+        $this->filterBoolTest("should", "must", "must");
+        $this->filterBoolTest("should", "must", "must_not");
 
-        $this->testFilterBool("must", "should", "should");
-        $this->testFilterBool("must", "should", "must");
-        $this->testFilterBool("must", "should", "must_not");
+        $this->filterBoolTest("must", "should", "should");
+        $this->filterBoolTest("must", "should", "must");
+        $this->filterBoolTest("must", "should", "must_not");
 
-        $this->testFilterBool("must_not", "should", "should");
-        $this->testFilterBool("must_not", "should", "must");
-        $this->testFilterBool("must_not", "should", "must_not");
+        $this->filterBoolTest("must_not", "should", "should");
+        $this->filterBoolTest("must_not", "should", "must");
+        $this->filterBoolTest("must_not", "should", "must_not");
 
-        $this->testFilterBool("must_not", "must", "should");
-        $this->testFilterBool("must_not", "must", "must");
-        $this->testFilterBool("must_not", "must", "must_not");
+        $this->filterBoolTest("must_not", "must", "should");
+        $this->filterBoolTest("must_not", "must", "must");
+        $this->filterBoolTest("must_not", "must", "must_not");
     }
 
-    private function testBool($bool)
+    private function boolTest($bool)
     {
         $es = new ES;
         $es->$bool(function($es) {
@@ -142,13 +186,13 @@ class ESTest extends TestCase
         ]);
     }
 
-    private function testQueryBool($bool1, $bool2, $bool3)
+    private function queryBoolTest($bool1, $bool2, $bool3)
     {
         $es = new ES;
         $es->$bool1(function($es) {
             $es->match("title", "es", 2);
             $es->match("content", "es", 1);
-        })->$bool2(function($es) {
+        })->$bool2(function($es) use ($bool3) {
             $es->match("title", "es", 2);
             $es->$bool3(function($es) {
                 $es->match("title", "es", 2);
@@ -156,7 +200,7 @@ class ESTest extends TestCase
             });
             $es->match("content", "es", 1);
         });
-        $this->assertEquals($es->query,
+        $this->assertEquals($es->to_query(),
             [
                 "query" => [
                     "bool" => [
@@ -180,10 +224,10 @@ class ESTest extends TestCase
         );
     }
 
-    private function testFilterBool($bool1, $bool2, $bool3)
+    private function filterBoolTest($bool1, $bool2, $bool3)
     {
         $es = new ES;
-        $es->$bool1(function($es) {
+        $es->$bool1(function($es) use ($bool3) {
             $es->where("price", ">=", 2);
             $es->where("price", "<=", 10);
             $es->$bool3(function($es) {
@@ -207,8 +251,8 @@ class ESTest extends TestCase
                             ["range" => ["price" => ["lte" => 10]]],
                             ["bool" => [
                                 "$bool3" => [
-                                    ["author" => ["terms" => ["awen", "king"]]],
-                                    ["publisher" => ["terms" => ["bbc", "acc"]]],
+                                    ["terms" => ["author" => ["awen", "king"]]],
+                                    ["terms" => ["publisher" => ["bbc", "acc"]]],
                                 ],
                             ]],
                             ["range" => ["age" => ["gt" => 5]]],
@@ -225,7 +269,7 @@ class ESTest extends TestCase
         );
     }
 
-    private function testFilterAndQueryBool($bool)
+    private function filterAndQueryBoolTest($bool)
     {
         $es = new ES;
         $es->$bool(function($es) {
@@ -239,7 +283,7 @@ class ESTest extends TestCase
           ->sort("_score", "asc");
 
         $query = $es->to_query();
-        $this->assertEquals($query, [
+		$compare = [
             "query" => [
                 "filtered" => [
                     "query" => [
@@ -255,19 +299,46 @@ class ESTest extends TestCase
                             "$bool" => [
                                 ["range" => ["price" => ["gte" => 10]]],
                                 ["range" => ["price" => ["lte" => 100]]],
-                                ["autho" => ["terms" => ["king", "awen"]]],
+                                ["terms" => ["autho" => ["king", "awen"]]],
                             ]
                         ]
                     ],
                 ]
             ],
             "sort" => [
-                "date" => ["order" => "desc"],
-                "_score" => ["order" => "asc"],
+                ["date" => ["order" => "desc"]],
+                ["_score" => ["order" => "asc"]],
             ],
-        ]);
+        ];
+        $this->assertEquals($query, $compare);
 
     }
+
+	private function mergeBool($bool)
+	{
+		$es = new ES;
+		$es->$bool(function($es){
+			$es->where("age", ">=", 12);
+			$es->where("age", "<=", 22);
+		});
+		$es->$bool(function($es){
+			$es->where("price", ">", 12);
+			$es->where("price", "<", 22);
+		});
+		$compare = [
+			"filter" => [
+				"bool" => [
+					"$bool" => [
+						["range" => ["age" => ["gte" => 12]]],
+						["range" => ["age" => ["lte" => 22]]],
+						["range" => ["price" => ["gt" => 12]]],
+						["range" => ["price" => ["lt" => 22]]],
+					],
+				],
+			],
+		];
+		$this->assertEquals($es->to_query(), $compare);
+	}
 
 
 }
