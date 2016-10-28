@@ -83,6 +83,24 @@ class ESTest extends TestCase
         $query2 = $es->to_query();
         $this->assertEquals($query1, $query2);
 
+        /* where 和 match 并存*/
+        $es = new ES;
+        $es->match("name", "es")
+           ->where("age", ">", 10)
+		   ->match("title", "search");
+        $query1 = $es->to_query();
+
+        $es = new ES;
+        $es->should(function($es) {
+            $es->match("name", "es");
+            $es->match("title", "search");
+        });
+        $es->must(function($es) {
+            $es->where("age", ">", 10);
+        });
+        $query2 = $es->to_query();
+        $this->assertEquals($query1, $query2);
+
 	}
 
 	public function testMergeBool()
