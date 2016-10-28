@@ -26,7 +26,7 @@
  *          $es->match("content", "Elasticsearch");
  *      });
  *    })
- *    ->sort_by_score()             //按照内容重要性排序
+ *    ->sort_score()             //按照内容重要性排序
  *    ->sort('date', 'desc')    //再按发布时间排序
  *    ->search();               //查询数据
  *
@@ -41,11 +41,23 @@ class ES
     private $index = "*";
     private $type = "*";
 
+    private $query = [];
+    private $sort = [];
+    private $filter = [];
+    private $cache = [];
+
+    //标记当前的 must/should/must_not 所处的上下文
+    //null 为初始化, "*" 为未知, "filter", "query" 分别对应过滤和查询
+    private $context = null;   
+    private $context_level = 0;
+
+
     /*
      * index() 选择索引
      */
     public function index($index_name = "*")
     {
+        $this->clean_query();
         $this->index = $index_name;
         return $this;
     }
@@ -66,6 +78,17 @@ class ES
      */
     public function search($query = null)
     {
+        $curl = new Curl();
+        $url = "http://" . $this->host . ":" . $this->port . "/" . $this->index . "/" . $this->type . "/_search";
+        if ($query) {
+            $post_fields = json_encode($query);
+        } else {
+            $post_fields = json_encode($this->to_query());
+        }
+        $data = $curl->request($url, "GET", $post_fields);
+        $this->clean_query();
+        $data = json_decode($data);
+        return $data;
     }
 
     /*
@@ -74,8 +97,12 @@ class ES
      * @param   $func, 原型为 function(Es $es)
      * @return  null;
      */
-    public function must($func)
+    public function must(Closure $func)
     {
+        $this->before("must");
+        $func($this);
+        $this->after();
+        return $this;
     }
 
     /*
@@ -84,8 +111,12 @@ class ES
      * @param   $func, 原型为 function(Es $es)
      * @return  null;
      */
-    public function should($func)
+    public function should(Closure $func)
     {
+        $this->before("should");
+        $func($this);
+        $this->after();
+        return $this;
     }
 
     /*
@@ -94,8 +125,12 @@ class ES
      * @param   $func, 原型为 function(Es $es)
      * @return  null;
      */
-    public function must_not($func)
+    public function must_not(Closure $func)
     {
+        $this->before("must_not");
+        $func($this);
+        $this->after();
+        return $this;
     }
 
     /*
@@ -110,6 +145,57 @@ class ES
      */
     public function where($field, $op, $value)
     {
+        $this->try_to_switch_context("filter", "must");
+
+        $this->try_to_push_context("filter", "where");
+        $filter = [];
+        switch ($op) {
+        case "=":
+            $filter["term"] = [$field => $value];
+            break;
+
+        case "in":
+            if (!is_array($value)) {
+                throw new \Exception(" 'in' operation should use an array as 'value'");
+            }
+            $filter["terms"] = [$field => $value];
+            break;
+
+        case ">=":
+            if (!is_numeric($value)) {
+                throw new \Exception(" '>=' operation should use number as 'value'");
+            }
+            $filter["range"] = [$field => ["gte" => $value]];
+            break;
+
+        case "<=":
+            if (!is_numeric($value)) {
+                throw new \Exception(" '<=' operation should use number as 'value'");
+            }
+            $filter["range"] = [$field => ["lte" => $value]];
+            break;
+
+        case "<":
+            if (!is_numeric($value)) {
+                throw new \Exception(" '<' operation should use number as 'value'");
+            }
+            $filter["range"] = [$field => ["lt" => $value]];
+            break;
+
+        case ">":
+            if (!is_numeric($value)) {
+                throw new \Exception(" '>' operation should use number as 'value'");
+            }
+            $filter["range"] = [$field => ["gt" => $value]];
+            break;
+
+        default :
+            throw new \Exception(" unknown operation '$op'");
+
+        }
+        $this->cache[] = $filter;
+        $this->pop_context();
+        return $this;
     }
 
     /*
@@ -120,6 +206,16 @@ class ES
      */
     public function exists($field, $exists = true)
     {
+        $this->try_to_switch_context("filter", "must");
+        $this->try_to_push_context("filter", "exists");
+        if ($exists) {
+            $filter = ["exists" => ["field" => $field]];
+        } else {
+            $filter = ["missing" => ["field" => $field]];
+        }
+        $this->cache[] = $filter;
+        $this->pop_context();
+        return $this;
     }
 
     /*
@@ -131,6 +227,20 @@ class ES
      */
     public function match($field, $keywords, $boost = 1)
     {
+        $this->try_to_switch_context("query", "should");
+
+        $this->try_to_push_context("query", "match");
+        if ($boost == 1) {
+            $condition = $keywords;
+        } else {
+            $condition = ["query" => $keywords, "boost" => $boost];
+        }
+        $query = [
+            "match" => [$field => $keywords]
+        ];
+        $this->cache[] = $query;
+        $this->pop_context();
+        return $this;
     }
 
     /*
@@ -143,6 +253,8 @@ class ES
      */
     public function sort($field, $order = "desc")
     {
+        $this->sort[$field] = ["order" => $order];
+        return $this;
     }
 
     /*
@@ -151,6 +263,8 @@ class ES
      */
     public function sort_score()
     {
+        $this->sort("_score", "desc");
+        return $this;
     }
 
 
@@ -159,6 +273,121 @@ class ES
      */
     public function to_query()
     {
+        $this->after();
+        $query = [];
+        if (!empty($this->query)) {
+            if (!empty($this->filter)) {
+                $query = [
+                    "query" => [
+                        "filtered" => [
+                            "query" => $this->query,
+                            "filter" => $this->filter,
+                        ],
+                    ]
+                ];
+            } else {
+                $query = [
+                    "query" => $this->query
+                ];
+            }
+        } else {
+            if (!empty($this->filter)) {
+                $query = [
+                    "filter" => $this->filter,
+                ];
+            } else {
+                $query = [
+                    "query" => ["match_all" => []]
+                ];
+            }
+        }
+        if (!empty($this->sort)) {
+            $query['sort'] = $this->sort;
+        }
+        return $query;
     }
 
+    private function try_to_push_context($tag, $func_name)
+    {
+        if ($this->context != "*" && $this->context != null) {
+            if ($tag != "*" && $tag != $this->context) {
+                throw new \Exception("could not call $func_name() in a $this->context context");
+            }
+        }
+        if ($this->context == "*" || $this->context == null) {
+            $this->context = $tag;
+        }
+        $this->context_level += 1;
+    }
+
+    private function build_query_from_cache(array &$cache)
+    {
+        $query = [];
+        while (!empty($cache)) {
+            $op = array_shift($cache);
+            if (in_array($op, ["must", "must_not", "should"])) {
+                $query[] = ["bool" => [$op => $this->build_query_from_cache($cache)]];
+            } elseif ($op == "end") {
+                return $query;
+            } else {
+                $query[] = $op;
+            } 
+        }
+        if (empty($query)) {
+            return [];
+        }
+        return $query[0];
+    }
+
+    private function pop_context()
+    {
+        $this->context_level -= 1;
+        if ($this->context_level == 0) {
+            switch ($this->context) {
+            case "query":
+                $this->query = $this->build_query_from_cache($this->cache);
+                break;
+
+            case "filter":
+                $this->filter = $this->build_query_from_cache($this->cache);
+                break;
+            }
+
+            $this->context = null;
+        }
+    }
+
+    private function clean_query()
+    {
+        $this->query = $this->filter = $this->sort = [];
+        $this->cache = [];
+        $this->context = null;
+        $this->context_level = 0;
+    }
+
+    private function before($bool)
+    {
+        $this->try_to_push_context("*", $bool);
+        $this->cache[] = $bool;
+    }
+
+    private function after()
+    {
+        if ($this->context_level) {
+            $this->cache[] = "end";
+            $this->pop_context();
+        }
+    }
+
+    private function try_to_switch_context($to_context, $bool)
+    {
+        $curr_ctx = $this->context;
+        if ($curr_ctx != "*" && $curr_ctx != $to_context && $this->context_level != 0) {
+            $this->after();
+        }
+        if ($curr_ctx == null) {
+            $this->before($bool);
+        }
+
+    }
 }

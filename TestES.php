@@ -1,5 +1,7 @@
 <?php
-class ESTest
+use PHPUnit\Framework\TestCase;
+require "./ES.php";
+class ESTest extends TestCase
 {
 
     public function testShould()
@@ -148,11 +150,11 @@ class ESTest
             $es->match("content", "es", 1);
         })->$bool2(function($es) {
             $es->match("title", "es", 2);
-            $es->match("content", "es", 1);
             $es->$bool3(function($es) {
                 $es->match("title", "es", 2);
                 $es->match("content", "es", 1);
             });
+            $es->match("content", "es", 1);
         });
         $this->assertEquals($es->query,
             [
@@ -160,17 +162,17 @@ class ESTest
                     "bool" => [
                         "$bool1" => [
                             ["match" => ["title" => ["query" => "es", "boost" => 2]]],
-                            ["match" => ["content" => ["query" => "es", "boost" => 1]]],
+                            ["match" => ["content" => "es"]],
                         ],
                         "$bool2" => [
                             ["match" => ["title" => ["query" => "es", "boost" => 2]]],
-                            ["match" => ["content" => ["query" => "es", "boost" => 1]]],
                             ["bool" => [
                                 "$bool3" => [
                                     ["match" => ["title" => ["query" => "es", "boost" => 2]]],
-                                    ["match" => ["content" => ["query" => "es", "boost" => 1]]],
+                                    ["match" => ["content" => "es"]],
                                 ],
                             ]],
+                            ["match" => ["content" => "es"]],
                         ],
                     ]
                 ]
@@ -184,12 +186,12 @@ class ESTest
         $es->$bool1(function($es) {
             $es->where("price", ">=", 2);
             $es->where("price", "<=", 10);
-            $es->where("age", ">", 5);
-            $es->where("age", "<", 9);
             $es->$bool3(function($es) {
                 $es->where("author", "in", ["awen", "king"]);
                 $es->where("publisher", "in", ["bbc", "acc"]);
             });
+            $es->where("age", ">", 5);
+            $es->where("age", "<", 9);
         });
         $es->$bool2(function($es) {
             $es->exists("weight");
@@ -203,14 +205,14 @@ class ESTest
                         "$bool1" => [
                             ["range" => ["price" => ["gte" => 2]]],
                             ["range" => ["price" => ["lte" => 10]]],
-                            ["range" => ["age" => ["gt" => 5]]],
-                            ["range" => ["age" => ["lt" => 9]]],
                             ["bool" => [
                                 "$bool3" => [
                                     ["author" => ["terms" => ["awen", "king"]]],
                                     ["publisher" => ["terms" => ["bbc", "acc"]]],
                                 ],
                             ]],
+                            ["range" => ["age" => ["gt" => 5]]],
+                            ["range" => ["age" => ["lt" => 9]]],
                         ],
                         "$bool2" => [
                             ["exists" => ["field" => "weight"]],
@@ -251,7 +253,8 @@ class ESTest
                     "filter" => [
                         "bool" => [
                             "$bool" => [
-                                ["range" => ["price" => ["gte" => 10, "lte" => 100]]],
+                                ["range" => ["price" => ["gte" => 10]]],
+                                ["range" => ["price" => ["lte" => 100]]],
                                 ["autho" => ["terms" => ["king", "awen"]]],
                             ]
                         ]
