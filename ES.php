@@ -36,10 +36,12 @@
 class ES
 {
     public $host = '127.0.0.1';
-    public $port = 9300;
+    public $port = 9200;
 
-    private $index = "*";
-    private $type = "*";
+	private $error = null;
+
+    private $index = null;
+    private $type = null;
 
     private $query = [];
     private $sort = [];
@@ -55,7 +57,7 @@ class ES
     /*
      * index() 选择索引
      */
-    public function index($index_name = "*")
+    public function index($index_name = null)
     {
         $this->clean_query();
         $this->index = $index_name;
@@ -65,11 +67,19 @@ class ES
     /*
      * type() 选择type
      */
-    public function type($type_name = "*")
+    public function type($type_name = null)
     {
         $this->type = $type_name;
         return $this;
     }
+
+	/*
+	 * error() 查看错误信息
+	 */
+	public function error()
+	{
+		return $this->error;
+	}
 
     /* 
      * search() 根据$query结构体进行查询
@@ -78,18 +88,38 @@ class ES
      */
     public function search($query = null)
     {
-        $curl = new Curl();
-        $url = "http://" . $this->host . ":" . $this->port . "/" . $this->index . "/" . $this->type . "/_search";
+		$path = '';
+		if ($this->index) {
+			$path .= $this->index . "/";
+		}
+		if ($this->type) {
+			$path .= $this->type . "/";
+		}
+        $url = "http://" . $this->host . ":" . $this->port . "/" . $path . "_search";
         if ($query) {
             $post_fields = json_encode($query);
         } else {
             $post_fields = json_encode($this->to_query());
         }
-        $data = $curl->request($url, "GET", $post_fields);
         $this->clean_query();
-        $data = json_decode($data);
-        return $data;
+        $data = $this->curl($url, "GET", $post_fields);
+		if ($data === false) {
+			return false;
+		}
+        $data = json_decode($data, true);
+        return $this->format_output($data);
     }
+
+	private function format_output($data)
+	{
+		$return = [];
+		if (isset($data['hits']['hits'])) {
+			foreach ($data['hits']['hits'] as $d) {
+				$return[] = $d['_source'];
+			}
+		}
+		return $return;
+	}
 
     /*
      * must() 对应 ES 的must查询语句, 相当于逻辑 AND
@@ -408,4 +438,49 @@ class ES
         }
 
     }
+
+	private function curl($url, $method, $post_fields)
+	{
+		$ch = curl_init($url);
+		if (!$ch) {
+			$this->set_error("failed curl_init('$url')");
+			return false;
+		}
+		$curl_options = [
+			CURLOPT_RETURNTRANSFER => 1,
+		];
+		$this->set_method($curl_options, $method);
+		$curl_options[CURLOPT_POSTFIELDS] = $post_fields;
+		if (curl_setopt_array($ch, $curl_options) === false) {
+			$this->set_error("failed curl_setopt_array(" . json_encode($curl_options) . ")");
+			curl_close($ch);
+			return false;
+		}
+		$res = curl_exec($ch);
+		if ($res === false) {
+			$this->error = "failed curl_exec($url). error:" . curl_error($ch);
+			return false;
+		}
+		return $res;
+	}
+
+	private function set_method(&$curl_options, $method)
+	{
+		$method = strtoupper($method);
+		switch ($method) {
+		case "POST":
+			$curl_options[CURLOPT_POST] = 1;
+			break;
+
+		default:
+			$curl_options[CURLOPT_CUSTOMREQUEST] = $method;
+			break;
+		}
+	}
+
+	private function set_error($errmsg)
+	{
+		$this->error = $errmsg;
+		return false;
+	}
 }

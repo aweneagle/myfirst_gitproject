@@ -5,6 +5,14 @@ class ESTest extends TestCase
 {
 	public function testDefault()
 	{
+        $es = new ES;
+		$query = $es->to_query();
+		$this->assertEquals($query, [
+			"query" => [
+				"match_all" => []
+			]
+		]);
+
         /* where 默认是在 must 子句中 */
         $es = new ES;
         $es->where("price", ">=", 10);
