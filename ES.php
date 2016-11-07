@@ -1,4 +1,5 @@
 <?php
+namespace App\Lib;
 /* 
  * ES, ElasticSearch 
  *
@@ -37,11 +38,18 @@ class ES
 {
     public $host = '127.0.0.1';
     public $port = 9200;
+    public $timeout_ms = 0;    //curl函数超时时间，单位是毫秒, <= 0 表示不超时
+    public $conntimeout_ms = 0;    //连接超时时间，单位是毫秒, <= 0 表示不超时
 
-	private $error = null;
+    private $error = null;
 
     private $index = null;
     private $type = null;
+
+    private $size = 0;  //分页大小, 默认不设置
+    private $from = 0;   //默认从第一条开始
+
+    private $_source = [];    //需要选取的字段
 
     private $query = [];
     private $sort = [];
@@ -54,6 +62,15 @@ class ES
     private $context_level = 0;
 
 
+    public function __construct($conf = null)
+    {
+        if ($conf) {
+            $this->host = $conf['host'];
+            $this->port = $conf['port'];
+            $this->index = $conf['index'];
+        }
+    }
+
     /*
      * index() 选择索引
      */
@@ -65,61 +82,159 @@ class ES
     }
 
     /*
+     * size() 设置分页大小
+     */
+    public function size($size)
+    {
+        $this->size = intval($size);
+        return $this;
+    }
+
+    /*
+     * from() 设置偏移量
+     */
+    public function from($offset)
+    {
+        $this->from = intval($offset);
+        return $this;
+    }
+
+    /*
      * type() 选择type
      */
     public function type($type_name = null)
     {
+        $this->clean_query();
         $this->type = $type_name;
         return $this;
     }
 
-	/*
-	 * error() 查看错误信息
-	 */
-	public function error()
-	{
-		return $this->error;
-	}
+    /*
+     * error() 查看错误信息
+     */
+    public function error()
+    {
+        return $this->error;
+    }
+
+    /*
+     * select() 指定哪些字段需要返回, 相当于 select_multi([...])
+     *
+     * @param  $fields 支持'as'功能，例如： ["cpid", "cpid as sceneCode"]
+     */
+    public function select()
+    {
+        return $this->select_multi(func_get_args());
+    }
+
+    /*
+     * select_multi() 指定哪些字段需要返回
+     *
+     * @param  $fields 支持'as'功能，例如： ["cpid", "cpid as sceneCode"]
+     */
+    public function select_multi(array $fields)
+    {
+        foreach ($fields as $f) {
+            if (is_string($f)) {
+                if (preg_match('/^([\w\.]+)\s+as\s+(\w+)$/i', $f, $match)) {
+                    $this->_source[$match[1]][] = $match[2];
+                } else {
+                    $this->_source[$f][] = $f;
+                }
+            }
+        }
+        return $this;
+    }
+
+    /*
+     * count() 统计符合条件的文档数量
+     *
+     * @return false, 查询语句或者数据访问有错误, 调用 error() 查看； 成功返回数组, 如果没有被匹配到，返回 []
+     */
+    public function count($query = null)
+    {
+        $url = $this->build_url("_count");
+        $post_fields = $this->build_query($query);
+        $data = $this->curl($url, "GET", $post_fields);
+        if ($data === false) {
+            return false;
+        }
+        $res = json_decode($data, true);
+        if (!$data) {
+            $this->set_error("wrong data:" . $data);
+            return false;
+        }
+        if (isset($res['error'])) {
+            $this->set_error("error:" . json_encode($res['error']));
+            return false;
+        }
+        return $res['count'];
+    }
+
 
     /* 
-     * search() 根据$query结构体进行查询
+     * search() 查询文档
      *
      * @return false, 查询语句或者数据访问有错误, 调用 error() 查看； 成功返回数组, 如果没有被匹配到，返回 []
      */
     public function search($query = null)
     {
-		$path = '';
-		if ($this->index) {
-			$path .= $this->index . "/";
-		}
-		if ($this->type) {
-			$path .= $this->type . "/";
-		}
-        $url = "http://" . $this->host . ":" . $this->port . "/" . $path . "_search";
-        if ($query) {
-            $post_fields = json_encode($query);
-        } else {
-            $post_fields = json_encode($this->to_query());
-        }
-        $this->clean_query();
+        $url = $this->build_url("_search");
+        $post_fields = $this->build_query($query);
         $data = $this->curl($url, "GET", $post_fields);
-		if ($data === false) {
-			return false;
-		}
+        if ($data === false) {
+            return false;
+        }
         $data = json_decode($data, true);
         return $this->format_output($data);
     }
 
-	private function format_output($data)
-	{
-		$return = [];
-		if (isset($data['hits']['hits'])) {
-			foreach ($data['hits']['hits'] as $d) {
-				$return[] = $d['_source'];
-			}
-		}
-		return $return;
-	}
+
+    /*
+     * bulk_upsert 批量插入数据
+     *
+     * @param   $data,  数据, [["field1" => "value" , "field2" => "value2"], ... ]
+     * @param   $_id,   作为文档_id的键值，字符串 或者 数组； 数组表示由一个组合键值来作为 文档的'_id', 文档'_id' 组合成功以后的格式为 "." 分割的字符串，形如"{val1}.{val2}.{val3}...."
+     */
+    public function bulk_upsert(array $data, $_id)
+    {
+        if (is_string($_id)) {
+            $_id = [$_id];
+        }
+        $url = "http://" . $this->host . ":" . $this->port . "/_bulk";
+        //$index_res = $this->curl($url, "POST", $this->build_bulk_body($data, "index", $_id));
+        $result = $this->curl($url, "POST", $this->build_bulk_body($data, "update", $_id));
+        $result = json_decode($result, true);
+
+        $update_succ = $create_succ = $failed = [];
+
+        $update_succ = $this->fetch_result($result, "update", 200);
+
+        if ($result['errors'] == 1) {
+            $update_failed = $this->fetch_result($result, "update", 200, false);
+            $update_failed = array_flip($update_failed);
+            foreach ($data as $d) {
+                $_id_key = $this->fetch_id_key($d, $_id);
+                if (isset($update_failed[$_id_key])) {
+                    $update_failed[$_id_key] = $d;
+                }
+            }
+
+            $result = $this->curl($url, "POST", $this->build_bulk_body($update_failed, "create", $_id));
+            $result = json_decode($result, true);
+
+            $create_succ = $this->fetch_result($result, "create", 201);
+            if ($result['errors'] == 1) {
+                $failed = $this->fetch_result($result, "create", 201, false);
+            }
+        }
+
+        return [
+            "update" => $update_succ,
+            "create" => $create_succ,
+            "failed" => $failed,
+        ];
+    }
 
     /*
      * must() 对应 ES 的must查询语句, 相当于逻辑 AND
@@ -127,7 +242,7 @@ class ES
      * @param   $func, 原型为 function(Es $es)
      * @return  null;
      */
-    public function must(Closure $func)
+    public function must(\Closure $func)
     {
         $this->before("must");
         $func($this);
@@ -141,7 +256,7 @@ class ES
      * @param   $func, 原型为 function(Es $es)
      * @return  null;
      */
-    public function should(Closure $func)
+    public function should(\Closure $func)
     {
         $this->before("should");
         $func($this);
@@ -155,7 +270,7 @@ class ES
      * @param   $func, 原型为 function(Es $es)
      * @return  null;
      */
-    public function must_not(Closure $func)
+    public function must_not(\Closure $func)
     {
         $this->before("must_not");
         $func($this);
@@ -332,6 +447,9 @@ class ES
         if (!empty($this->sort)) {
             $query['sort'] = $this->sort;
         }
+        if (!empty($this->_source)) {
+            $query['_source'] = array_keys($this->_source);
+        }
         return $query;
     }
 
@@ -367,18 +485,18 @@ class ES
         return $query[0];
     }
 
-	private function merge_bool($merge_from, $merge_into)
-	{
-		if (isset($merge_from['bool'])) {
-			foreach ($merge_from['bool'] as $bool => $info) {
-				if (!isset($merge_into['bool'][$bool])) {
-					$merge_into['bool'][$bool] = [];
-				}
-				$merge_into['bool'][$bool] = array_merge($merge_into['bool'][$bool], $info);
-			}
-		}
-		return $merge_into;
-	}
+    private function merge_bool($merge_from, $merge_into)
+    {
+        if (isset($merge_from['bool'])) {
+            foreach ($merge_from['bool'] as $bool => $info) {
+                if (!isset($merge_into['bool'][$bool])) {
+                    $merge_into['bool'][$bool] = [];
+                }
+                $merge_into['bool'][$bool] = array_merge($merge_into['bool'][$bool], $info);
+            }
+        }
+        return $merge_into;
+    }
 
     private function pop_context()
     {
@@ -386,17 +504,17 @@ class ES
         if ($this->context_level == 0) {
             switch ($this->context) {
             case "query":
-				$this->query = $this->merge_bool(
-					$this->build_query_from_cache($this->cache), 
-					$this->query
-				);
+                $this->query = $this->merge_bool(
+                    $this->build_query_from_cache($this->cache), 
+                    $this->query
+                );
                 break;
 
             case "filter":
-				$this->filter = $this->merge_bool(
-					$this->build_query_from_cache($this->cache, $this->filter),
-					$this->filter
-				);
+                $this->filter = $this->merge_bool(
+                    $this->build_query_from_cache($this->cache, $this->filter),
+                    $this->filter
+                );
                 break;
             }
 
@@ -431,7 +549,7 @@ class ES
         $curr_ctx = $this->context;
         if ($curr_ctx != "*" && $curr_ctx != $to_context && $curr_ctx != null) {
             $this->after();
-			$this->before($bool);
+            $this->before($bool);
         }
         if ($curr_ctx == null) {
             $this->before($bool);
@@ -439,48 +557,181 @@ class ES
 
     }
 
-	private function curl($url, $method, $post_fields)
-	{
-		$ch = curl_init($url);
-		if (!$ch) {
-			$this->set_error("failed curl_init('$url')");
-			return false;
-		}
-		$curl_options = [
-			CURLOPT_RETURNTRANSFER => 1,
-		];
-		$this->set_method($curl_options, $method);
-		$curl_options[CURLOPT_POSTFIELDS] = $post_fields;
-		if (curl_setopt_array($ch, $curl_options) === false) {
-			$this->set_error("failed curl_setopt_array(" . json_encode($curl_options) . ")");
-			curl_close($ch);
-			return false;
-		}
-		$res = curl_exec($ch);
-		if ($res === false) {
-			$this->error = "failed curl_exec($url). error:" . curl_error($ch);
-			return false;
-		}
-		return $res;
-	}
+    private function curl($url, $method, $post_fields)
+    {
+        $ch = curl_init($url);
+        if (!$ch) {
+            $this->set_error("failed curl_init('$url')");
+            return false;
+        }
+        $curl_options = [
+            CURLOPT_RETURNTRANSFER => 1,
+        ];
+        $this->set_method($curl_options, $method);
+        $curl_options[CURLOPT_POSTFIELDS] = $post_fields;
+        $conn_timeout_ms = intval($this->conntimeout_ms);
+        $timeout_ms = intval($this->timeout_ms);
+        if ($conn_timeout_ms > 0) {
+            $curl_options[CURLOPT_CONNECTTIMEOUT_MS] = $conn_timeout_ms;
+        }
+        if ($timeout_ms > 0) {
+            $curl_options[CURLOPT_TIMEOUT_MS] = $timeout_ms;
+        }
+        if (curl_setopt_array($ch, $curl_options) === false) {
+            $this->set_error("failed curl_setopt_array(" . json_encode($curl_options) . ")");
+            curl_close($ch);
+            return false;
+        }
+        $res = curl_exec($ch);
+        if ($res === false) {
+            curl_close($ch);
+            $this->error = "failed curl_exec($url). error:" . curl_error($ch);
+            return false;
+        }
+        curl_close($ch);
 
-	private function set_method(&$curl_options, $method)
-	{
-		$method = strtoupper($method);
-		switch ($method) {
-		case "POST":
-			$curl_options[CURLOPT_POST] = 1;
-			break;
+        return $res;
+    }
 
-		default:
-			$curl_options[CURLOPT_CUSTOMREQUEST] = $method;
-			break;
-		}
-	}
+    private function set_method(&$curl_options, $method)
+    {
+        $method = strtoupper($method);
+        switch ($method) {
+        case "POST":
+            $curl_options[CURLOPT_POST] = 1;
+            break;
 
-	private function set_error($errmsg)
-	{
-		$this->error = $errmsg;
-		return false;
-	}
+        default:
+            $curl_options[CURLOPT_CUSTOMREQUEST] = $method;
+            break;
+        }
+    }
+
+    private function set_error($errmsg)
+    {
+        $this->error = $errmsg;
+        return false;
+    }
+
+    private function format_output($data)
+    {
+        $return = [];
+        if (isset($data['hits']['hits'])) {
+            foreach ($data['hits']['hits'] as $d) {
+                $row = $d['_source'];
+                $new_row = [];
+                foreach ($this->_source as $key => $alias) {
+                    foreach ($alias as $rename) {
+                        if (false === strpos($key, ".")) {
+                            $new_row[$rename] = $d['_source'][$key];
+                        } else {
+                            $new_row[$rename] = $this->fetch_deep_element($d['_source'], explode(".", $key));
+                        }
+                    }
+                }
+                $return[] = $new_row;
+            }
+        }
+        return $return;
+    }
+
+    private function fetch_deep_element(array $source, array $key_chain)
+    {
+        $key = array_shift($key_chain);
+        if (!isset($source[$key])) {
+            return false;
+        } elseif (empty($key_chain)) {
+            return $source[$key];
+        } elseif (!is_array($source[$key])) {
+            return false;
+        } else {
+            return $this->fetch_deep_element($source[$key], $key_chain);
+        }
+    }
+
+    private function build_query($query)
+    {
+        if ($query !== null) {
+            $post_fields = json_encode($query);
+        } else {
+            $post_fields = json_encode($this->to_query());
+        }
+        return $post_fields;
+    }
+
+    private function build_url($operation)
+    {
+        $path = '';
+        if ($this->index) {
+            $path .= $this->index . "/";
+        }
+        if ($this->type) {
+            $path .= $this->type . "/";
+        }
+
+        $get = [];
+        if ($this->size) {
+            $get['size'] = $this->size;
+        }
+        if ($this->from) {
+            $get['from'] = $this->from;
+        }
+
+        $head = "http://" . $this->host . ":" . $this->port . "/" ;
+        switch ($operation) {
+        case "_bulk":
+            return $head . $operation;
+
+        case "_count":
+        case "_search":
+            return $head . $path . $operation . "?" . http_build_query($get);
+        }
+    }
+
+    private function fetch_result(array $result, $operation, $code, $equal = true)
+    {
+        $return = [];
+        foreach ($result['items'] as $r) {
+            if ($equal) {
+                $check = ($r[$operation]['status'] == $code);
+            } else {
+                $check = ($r[$operation]['status'] != $code);
+            }
+            if ($check) {
+                $return[] = $r[$operation]['_id'];
+            }
+        }
+        return $return;
+    }
+
+    private function build_bulk_body(array $data, $operation, $_id)
+    {
+        $body = [];
+        foreach ($data as $d) {
+            $row = $d;
+            $d = [];
+            $d['_index'] = $this->index;
+            $d['_type'] = $this->type;
+            $d['_id'] = $this->fetch_id_key($row, $_id);
+            $body[] = json_encode([$operation => $d]);
+            if ($operation == "update") {
+                $body[] = json_encode(["doc" => $row]);
+            } else {
+                $body[] = json_encode($row);
+            }
+        }
+        return implode("\n", $body) . "\n";
+    }
+
+    private function fetch_id_key($row, array $_id_union)
+    {
+        $_id = [];
+        foreach ($_id_union as $key) {
+            if (!isset($row[$key])) {
+                throw new \Exception("unknown _id of document: '$key'");
+            }
+            $_id[] = $row[$key];
+        }
+        return implode(".", $_id);
+    }
 }
