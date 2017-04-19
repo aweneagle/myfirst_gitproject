@@ -1,0 +1,12 @@
+---
+- hosts: vpn
+  remote_user: awen
+  vars: 
+    dest_dir: /home/awen
+
+  tasks:
+    - name: 同步文件夹
+      synchronize:
+        src: "{{ playbook_dir }}/somecode/"
+        dest: "{{ dest_dir }}/somecode"
+        delete: yes

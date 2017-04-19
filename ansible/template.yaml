@@ -1,0 +1,9 @@
+---
+- hosts: vpn
+  remote_user: awen
+  vars: 
+    myname: "{{ myname }}"
+    dest_dir: /home/awen
+  tasks:
+    - name: 使用模板生成远端文件
+      template: src="{{ playbook_dir }}/conf.tpl" dest="{{ dest_dir }}/my.conf"

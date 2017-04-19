@@ -2,6 +2,23 @@
 class Spider
 {
 
+	/* 每隔多少秒重连一次redis */
+	public $redis_reconn_time = 60;	
+
+	private $last_time = null;
+
+	private function time_to_reconn()
+	{
+		$curr = time();
+		$reconn = intval($this->redis_reconn_time);
+		if ($reconn && ($curr - $this->last_time > $reconn)) {
+			$this->last_time = $curr;
+			$this->redis = null;
+			return true;
+		}
+		return false;
+	}
+
 	/* 
 	 * run() 自动爬去数据时，一次multi_curl的url数
 	 */
@@ -27,13 +44,23 @@ class Spider
 	 * 错误处理函数
 	 * function on_error($request, $response), 函数无需返回
 	 */
-	public $on_error = null;
+	private $on_error = null;
+
+	public function on_error(Closure $func)
+	{
+		$this->on_error = $func;
+	}
 
 	/*
 	 * 页面处理函数
 	 * function on_succ($request, $response), 函数无需返回
 	 */
-	public $on_succ = null;
+	private $on_succ = null;
+
+	public function on_succ(Closure $func)
+	{
+		$this->on_succ = $func;
+	}
 
 	/*
 	 * 上报redis的情况
@@ -53,7 +80,7 @@ class Spider
 	 *      ["url" => url, "referer" => referer]
 	 * ]
 	 */
-	public $urls_from_spider = null;
+	private $urls_from_spider = null;
 
 	/*
 	 * 通过设置urls_to_spider来返回需要访问的链接给爬虫
@@ -63,13 +90,20 @@ class Spider
 	 * 		["url" => url, "referer" => referer]
 	 * ]
 	 */
-	public $urls_to_spider = null;
+	private $urls_to_spider = null;
+
 
 	/*
 	 * url 过滤函数
 	 * function urls_filter(array $urls), 函数接收爬虫所收集到的url, 筛选之后再返回给爬虫进行下一步的爬取
 	 */
-	public $urls_filter = null;
+	private $urls_filter = null;
+
+	public function urls_filter(Closure $func)
+	{
+		$this->urls_filter = $func;
+	}
+
 
 	/*
 	 * $cookies 
@@ -130,23 +164,104 @@ class Spider
 
 	const NO_PARSE = false;
 
+
+	/*
+	 * url_store 
+	 * example: "redis://localhost:6379"
+	 */
+	public $url_store = null;
+
+	private $redis = null;
+	private $redis_host = null;
+	private $redis_port = null;
+	private $redis_url_history = "_SPIDER_history_hash_";
+	private $redis_url_entries = "_SPIDER_entries_list_";
+
+	private function redis()
+	{
+		for ($i = 0; $i < 3 && (!$this->redis || $this->time_to_reconn()); $i ++) {
+			try {
+				if (!$this->redis) {
+					$redis = new Redis();
+					$redis->connect($this->redis_host, $this->redis_port);
+					$this->redis = $redis;
+				}
+			} catch (\Exception $e) {
+				sleep(1);
+				$this->error($e->getMessage());
+			}
+		}
+		return $this->redis;
+	}
+
+	private function init_url_handlers($url_store)
+	{
+		$info = parse_url($url_store);
+		if (!isset($info['scheme']) || $info['scheme'] != "redis"
+			||	!isset($info['host']) || !isset($info['port'])
+		) {
+			return $this->error("wrong url_store[$url_store]");
+		}
+		$this->redis_host = $info['host'];
+		$this->redis_port = $info['port'];
+		$spider = $this;
+		$this->urls_from_spider = function($urls) use ($spider) {
+			if (empty($urls)) {
+				return;
+			}
+			$new_urls = [];
+			foreach ($urls as $u) {
+				$u['url'] = urlencode($u['url']);
+				$u['referer'] = urlencode($u['referer']);
+				$new_urls[$u['url']] = json_encode($u);
+			}
+			$history = $spider->redis()->hmget($spider->redis_url_history, array_keys($new_urls));
+			foreach ($history as $u => $null) {
+				if ($null != false) {
+					unset($new_urls[$u]);
+				}
+			}
+			foreach ($new_urls as $u) {
+				$spider->redis()->rpush($spider->redis_url_entries, $u);
+			}
+		};
+
+		$this->urls_to_spider = function() use ($spider) {
+			$urls = [];
+			for ($i = 0; $i < $spider->batch_num * 2; $i ++) {
+				$u = $spider->redis()->lpop($spider->redis_url_entries);
+				if ($u = json_decode($u, true)) {
+					$u['url'] = urldecode($u['url']);
+					$u['referer'] = urldecode($u['referer']);
+					$urls[] = $u;
+				}
+			}
+			return $urls;
+		};
+
+		$on_succ = $this->on_succ;
+		$this->on_succ = function($req, $resp) use ($on_succ, $spider) {
+			if ($on_succ) {
+				$on_succ($req, $resp);
+			}
+			$this->redis()->hset($spider->redis_url_history, urlencode($req['url']), 1);
+		};
+	}
+
 	/*
 	 * run() 函数以一定数量的url为入口, 自动爬取页面
 	 *
 	 */
-	public function run(array $urls, array $header = [])
+	public function run($urls, array $header = [])
 	{
-		if (!$this->urls_from_spider) {
-			return $this->error("no handler urls_from_spider() found");
+		if (is_string($urls)) {
+			$urls = [$urls];
 		}
-		if (!is_callable($this->urls_from_spider)) {
-			return $this->error("handler urls_from_spider() should be callable");
+		if ($this->url_store) {
+			$this->init_url_handlers($this->url_store);
 		}
-		if (!$this->urls_to_spider) {
-			return $this->error("no handler urls_to_spider() found");
-		}
-		if (!is_callable($this->urls_to_spider)) {
-			return $this->error("handler urls_to_spider() should be callable");
+		if (!$this->error_log) {
+			$this->error_log = "php://stderr";
 		}
 		$this->push_urls($urls, null);
 		while ($entries = $this->pop_urls()) {
@@ -167,7 +282,7 @@ class Spider
 				if (!$res) {
 					continue;
 				}
-				$this->parse_url($scheme, $host, $path, $query);
+				$this->parse_url($referer, $scheme, $host, $path, $query);
 				// 用于相对路径
 				if ($path) {
 					$path_root = substr($path, strrpos($path, "/") + 1);
@@ -184,7 +299,7 @@ class Spider
 					$u = htmlspecialchars_decode($u);
 					$this->parse_url($u, $u_scheme, $u_host, $u_path, $u_query, $u_user, $u_pass);
 					/* 过滤掉例如 # 一类的url */
-					if (!$u_path) {
+					if (!in_array($u_scheme, ["http", "https", null])) {
 						unset($new_urls[$i]);
 						continue;
 					}
@@ -207,6 +322,13 @@ class Spider
 				if ($this->urls_filter) {
 					$func = $this->urls_filter;
 					$new_urls = $func($new_urls);
+					if (!$new_urls || (!is_array($new_urls))) {
+						if (is_string($new_urls)) {
+							$new_urls = [$new_urls];
+						} else {
+							$new_urls = [];
+						}
+					}
 				}
 
 				$this->push_urls($new_urls, $referer, self::NO_PARSE);
@@ -327,7 +449,7 @@ class Spider
 				$this->init_curl($h, $u);
 				$curl_pool[$u["url"]] = $h;
 				/* 仅仅做url映射 */
-				$request_pool[$u["url"]] = &$u;
+				$request_pool[$u["url"]] = $u;
 			} else {
 				$this->error($u["url"] . " failed to curl_init()");
 			}
@@ -346,7 +468,7 @@ class Spider
 				$response[$u] = false;
 				if ($this->on_error) {
 					$func = $this->on_error;
-					$func($request_pool[$u], $resp);
+					$func($request_pool[$u], curl_errno($h), $this->error);
 				}
 
 				/* curl 成功*/
@@ -818,7 +940,8 @@ class Spider
 	{
 		$url_list = [];
 		if (count($this->entries_cache) < $this->batch_num) {
-			$this->call_handler("pop", []);
+			$func = $this->urls_to_spider;
+			$urls = $func();
 			if (!is_array($urls)) {
 				return $this->error("wrong return value from handler urls_to_spider(), should be array");
 			}
@@ -855,56 +978,8 @@ class Spider
 			/* 添加 referer, path_root */
 			$urls[$i] = ["url" => $u, "referer" => $referer];
 		}
-		return $this->call_handler("push", [$urls]);
-	}
-
-	private function call_handler($handler_name, $argvs)
-	{
-		switch ($handler_name) {
-		case "push":
-			$func = $this->urls_from_spider;
-			$callable = &$this->urls_from_spider_callable;
-			break;
-
-		case "pop":
-			$func = $this->urls_to_spider;
-			$callable = &$this->urls_to_spider_callable;
-			break;
-
-		}
-
-		if (!$callable) {
-			$callable = [];
-			if (is_array($func) || is_string($func) && strpos($func, ":") !== false) {
-				if (is_string($func)) {
-					$func = explode("::", $func);
-				}
-				$callable['h'] = (new ReflectionClass($func[0]))->getMethod($func[1]);
-				if (!is_object($func[0])) {
-					$callable['t'] = "class_static";
-				} else {
-					$callable['t'] = "class_method";
-					$callable['obj'] = $func[0];
-				}
-			} else {
-				$callable['h'] = new ReflectionFunction($func);
-				$callable['t'] = "function";
-			}
-		}
-
-		switch ($callable['t']) {
-		case "class_static":
-			return $callable['h']->invokeArgs(null, $argvs);
-			break;
-
-		case "class_method":
-			return $callable['h']->invokeArgs($callable['obj'], $argvs);
-			break;
-
-		case "function":
-			return $callable['h']->invokeArgs($argvs);
-			break;
-		}
+		$func = $this->urls_from_spider;
+		return $func($urls);
 	}
 
 }
